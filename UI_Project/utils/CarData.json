@@ -1,0 +1,7 @@
+{
+    "enable_imu":true,
+    "enable_camera":true,
+    "enable_instant_consumption":true,
+    "car_operable":false,
+    "car_running":false
+}
