@@ -47,14 +47,14 @@ except:
     filename = "trafficCommunicationServer/Useful/privatekey_server_test.pem"
 
 class TrafficCommunication(ThreadWithStop):
-    def __init__(self, streamPort=9000, frequency=1, commPort=5000, encrypt_key=filename):
+    def __init__(self, streamPort=9000, commPort=5000, encrypt_key=filename):
         super(TrafficCommunication,self).__init__()
 
         self.data_dealer = dataDealer()
 
         self.tcp_factory_Locsys = tcpServerLocsys()
         self.tcp_factory = tcpServer(self.data_dealer)
-        self.udp_factory = udpStream(streamPort, frequency, commPort, encrypt_key)
+        self.udp_factory = udpStream(streamPort, commPort, encrypt_key)
         self.period_task = periodicTask(1, self.data_dealer)
 
         self.reactor = reactor

@@ -30,7 +30,7 @@ from twisted.internet import task, protocol
 import Useful.keyDealer as keyDealer
 
 class udpStream(protocol.DatagramProtocol):
-    def __init__(self, streamPort, frequency, commPort, encrypt_key):
+    def __init__(self, streamPort, commPort, encrypt_key, frequency=1):
         self.address = ("<broadcast>", streamPort)
         self.frequency = frequency
         key = keyDealer.load_private_key(encrypt_key)
