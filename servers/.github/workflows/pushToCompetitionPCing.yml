@@ -1,4 +1,4 @@
-name: Dispatch update - Computer
+name: Dispatch update - CompetitionPCing
 
 on: 
   push:
@@ -11,5 +11,5 @@ jobs:
       uses: peter-evans/repository-dispatch@v1
       with:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
-        repository: ECC-BFMC/Computer
+        repository: ECC-BFMC/CompetitionPCing
         event-type: update-subtree-servers
