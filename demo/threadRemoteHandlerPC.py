@@ -28,12 +28,12 @@
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)).split("Computer")[0] + "Computer/")
-from templates.threadwithstop import ThreadWithStop
-from twisted.internet import reactor, protocol, task
+
 import time
 import json
 import numpy as np
-
+from templates.threadwithstop import ThreadWithStop
+from twisted.internet import reactor, protocol, task
 
 class threadRemoteHandlerPC(ThreadWithStop):
     def __init__(self, pipeRecv, pipeSend):
@@ -42,7 +42,7 @@ class threadRemoteHandlerPC(ThreadWithStop):
         self.factory = FactoryDealer(self.pipeSend)
         self.reactor = reactor
         self.reactor.connectTCP('192.168.88.126', 5000, self.factory)
-        self.task = PeriodicTask(self.factory, 0.1, pipeRecv)  # Replace X with the desired number of seconds
+        self.task = PeriodicTask(self.factory, 0.001, pipeRecv)  # Replace X with the desired number of seconds
         print("before task")
     
     def run(self):
@@ -66,25 +66,19 @@ class SingleConnection(protocol.Protocol):
         self.send_data("Ala-Bala")
         self.buffer = b''
         self.state = 'SIZE&TYPE'
-        self.size = 0
-        
+        self.size = 5
+        self.type =1 
+        self.var=0
+        self.states={1:"IMAGE",2:"TABLE",3:"CAR",4:"SEMAPHORE",5:"ENABLEENGINE",6:"ENGINERUNNING"}
+
     def dataReceived(self, data):
         self.buffer += data
         if self.state == 'SIZE&TYPE':
-            if len(self.buffer) >= 5: #is_json 5
+            if len(self.buffer) >= self.size: #is_json 5
                 self.type = int.from_bytes(self.buffer[:1], byteorder='big')
                 self.size= int.from_bytes(self.buffer[2:5],byteorder="big")
                 self.buffer = self.buffer[5:]
-                if self.type == 1:
-                    self.state="IMAGE"
-                elif self.type == 2:
-                    self.state="TABLE"
-                elif self.type == 3:
-                    self.state="CAR"
-                elif self.type == 4:
-                    self.state="SEMAPHORE"
-                elif self.type == 5:
-                    self.state="ENABLEENGINE"
+                self.state = self.states[self.type]
         elif self.state == 'IMAGE':
             if len(self.buffer) >= self.size:
                 img_data = self.buffer[:self.size]
@@ -122,12 +116,22 @@ class SingleConnection(protocol.Protocol):
                 self.buffer = self.buffer[self.size:]
                 self.factory.pipeSend.send({'action':"enableStartEngine","value":dat})
                 self.state = 'SIZE&TYPE'
+        elif self.state == 'ENGINERUNNING':
+            if len(self.buffer) >= self.size:
+                data = self.buffer[:self.size]
+                dat = data.decode("utf-8")
+                datajson = json.loads(dat)
+                self.buffer = self.buffer[self.size:]
+                if datajson == True:
+                    self.factory.pipeSend.send({'action':"modTable","value":['SYS_ENGINE_RUN',"True"]})
+                else:
+                    self.factory.pipeSend.send({'action':"modTable","value":['SYS_ENGINE_RUN',"False"]})
+                self.state = 'SIZE&TYPE'
 
     def connectionLost(self, reason):
         self.factory.isConnected = False
         self.factory.connection = None
-        self.factory.pipeSend.send({'action': "enableStartEngine","value":False})
-        self.factory.pipeSend.send({'action': "emptyAll","value":False})
+        self.factory.pipeSend.send({'action':"conLost","value":False})
         print("Connection lost with server ", self.factory.connectiondata, " due to: ", reason)
 
     def send_data(self, message):
@@ -199,7 +203,6 @@ if __name__ == "__main__":
     for proc in allProcesses:
         proc.start()
 
-    
     from multiprocessing import Event 
     blocker = Event()  
 

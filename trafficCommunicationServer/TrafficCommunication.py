@@ -41,10 +41,10 @@ from Useful.dataDealer      import dataDealer
 
 try:
     from Useful.periodicTask      import periodicTask
-    filename = "trafficCommunicationServer/Useful/privatekey_server.pem"
+    filename = "./Useful/privatekey_server.pem"
 except:
     from Useful.periodicTask_test      import periodicTask
-    filename = "trafficCommunicationServer/Useful/privatekey_server_test.pem"
+    filename = "./Useful/privatekey_server_test.pem"
 
 class TrafficCommunication(ThreadWithStop):
     def __init__(self, streamPort=9000, commPort=5000, encrypt_key=filename):
@@ -74,7 +74,6 @@ class TrafficCommunication(ThreadWithStop):
 if __name__ == "__main__":
     traffic_communication = TrafficCommunication()
     traffic_communication.start()
-
     from multiprocessing import Event 
     blocker = Event()  
 

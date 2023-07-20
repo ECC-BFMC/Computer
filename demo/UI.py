@@ -39,6 +39,7 @@ class UI():
         self.pipesend = pipesend
         self.piperecv = piperecv
         self.exitFlag = False
+        self.started = False
         self.create()
 
     def pause_main_loop(self, delay_ms):
@@ -129,6 +130,7 @@ class UI():
         self.my_game.insert(parent='',index='end', iid=8,    values=('IN_SEMAPHORE',        'pending'))         
 
         self.my_game.pack()
+        self.root.update()
 
     #--------------------------------------------------------------------
     #--------------------------------------------------------------------
@@ -151,10 +153,12 @@ class UI():
 
     def Brake(self):
         self.setSpeed(0.0)
+        data = {"action": "brake", "value":0.0}
+        self.pipesend.send(data)
 
     def setSpeed(self, val):
         if not (stack()[1].function == "plusSpeed" or stack()[1].function =="minusSpeed" or stack()[1].function =="Brake"):
-            data = {"aciton": "speed", "value":val}
+            data = {"action": "speed", "value":val}
             self.pipesend.send(data)
         self.Speedslider.set(val)
                 
@@ -165,13 +169,13 @@ class UI():
     #--------------------------------------------------------------------
 
     def plusSteer(self):
-        steer = self.Steerslider.get()+1
-        if steer>20: steer=20
-        self.setSteer(steer)
+        steer = self.Steerslider.get()+1.0
+        if steer>20.0: steer=20.0
+        self.setSteer(float(steer))
 
     def minusSteer(self):
-        steer = self.Steerslider.get()-1
-        if steer<-5: steer-5
+        steer = self.Steerslider.get()-1.0
+        if steer<-20.0: steer=-20.0
         self.setSteer(steer)
 
     def slidingSteer(self, val):
@@ -179,7 +183,7 @@ class UI():
 
     def setSteer(self, val):
         if not (stack()[1].function == "plusSteer" or stack()[1].function =="minusSteer"):
-            data = {"aciton": "steer", "value":val}
+            data = {"action": "steer", "value":val}
             self.pipesend.send(data)
         self.Steerslider.set(val)
      
@@ -195,19 +199,17 @@ class UI():
             self.startEngineButton.config(background="red")
         else:
             self.startEngineButton.config(state="active")
-            time.sleep(0.1)
-            self.startEngineButton.config(background="red")
+            self.startEngineButton.config(background="green")
             
     def startEngine(self):
-        temp = self.startEngineButton.cget('bg')
-        if temp =="red": 
+        if self.started: 
             self.startEngineButton.config(background="green")
-            started = True
+            self.started = False
         else: 
             self.startEngineButton.config(background="red")
-            started = False
+            self.started = True
 
-        data = {"aciton": "startEngine", "value":started}
+        data = {"action": "startEngine", "value":self.started}
         self.pipesend.send(data)
 
     #--------------------------------------------------------------------
@@ -256,7 +258,7 @@ class UI():
     def modifyImage(self, img):
         try:
             img_np = cv2.imdecode(img, cv2.IMREAD_COLOR)
-            pil_image = Image.fromarray(cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB))
+            pil_image = Image.fromarray(img_np)
             tk_image=ImageTk.PhotoImage(pil_image)
             self.CameraImg.config(image=tk_image)
             self.root.update()
@@ -270,10 +272,12 @@ class UI():
                 self.modifyImage(msg['value'])
             elif msg['action'] == "enableStartEngine": 
                 self.enableStartEngine(msg['value'])
-            elif msg['action'] == "emptyAll": 
-                self.emptyAll()
+                self.modifyTable(['SYS_ENGINE_OPE',"True"])
             elif msg['action'] == 'modTable':
                 self.modifyTable(msg['value'])
+            elif msg['action'] == 'conLost':
+                self.enableStartEngine(msg['value'])
+                self.modifyTable(['SYS_ENGINE_OPE',"False"])
         self.root.after(0,self.continous_update)
 
 if __name__ == "__main__":
