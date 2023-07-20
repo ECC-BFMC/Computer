@@ -95,6 +95,8 @@ class udpStream(protocol.DatagramProtocol):
         self.streaming_task.stop()  # Stop streaming when the server is stopped
 
     def sendState(self, id, state, x, y):
+        time.sleep(1)
+        print("send")
         value = {"device": "semaphore", "id":id, "state":state, "x":x, "y":y}
         message = json.dumps(value)
         self.transport.write(message.encode('utf-8'), self.address)
