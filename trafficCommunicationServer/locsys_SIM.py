@@ -29,6 +29,7 @@
 from twisted.internet import  protocol, task
 import json
 import itertools
+import time 
 
 # The server itself. Creates a new Protocol for each new connection and has the info for all of them.
 class tcpServerLocsys(protocol.Factory):
@@ -63,9 +64,10 @@ class SingleConnection(protocol.Protocol):
         print("Connection lost with ", self.connectiondata, " due to: ", reason, "for locsys device simulator")
         del self.factory.connections[self.connectiondata]
         self.streaming_task.stop()
-
+        
     def send_data(self):
         pos = next(self.array_iterator)
+        time.sleep(1)
         tosend = {"x":pos[0], "y":pos[1]}
         msgtosend = json.dumps(tosend)
         self.transport.write(msgtosend.encode())
