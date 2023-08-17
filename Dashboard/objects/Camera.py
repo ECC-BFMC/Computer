@@ -26,28 +26,35 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-from twisted.internet import task, protocol
-import Useful.keyDealer as keyDealer
+from objects.Object import Object
+import cv2
+import numpy as np
 
 
-class udpStream(protocol.DatagramProtocol):
-    def __init__(self, streamPort, commPort, encrypt_key, frequency=1):
-        self.address = ("<broadcast>", streamPort)
-        self.frequency = frequency
-        key = keyDealer.load_private_key(encrypt_key)
-        msg = "listening on:" + str(commPort)
-        msg_t = msg.encode()
-        signature = keyDealer.sign_data(key, msg_t)
-        tmpMsgToSend = signature + "(-.-)".encode() + msg_t
-        self.MsgToSend = tmpMsgToSend
+class Camera(Object):
+    def __init__(self, x, y, game, window, width=220, height=120):
+        super().__init__(x, y, game, window, width, height)
+        image1 = self.game.image.load("objects/images/BFMC.png")
+        self.frame = self.game.transform.scale(image1, (self.width, self.height))
+        self.font = self.game.font.Font(None, 25)
+        self.rectangle = self.game.Rect(x, y, self.width, self.height)
+        self.on = False
 
-    def startProtocol(self):
-        self.transport.setBroadcastAllowed(True)
-        self.streaming_task = task.LoopingCall(self.send_message)
-        self.streaming_task.start(self.frequency)  # Send data every 1 second
+    def change_frame(self, newFrame):
+        newFrame = cv2.imdecode(newFrame, cv2.IMREAD_COLOR)
+        newFrame = np.rot90(newFrame)
+        newFrame = np.flip(newFrame, axis=0)
+        newSurface = self.game.surfarray.make_surface(newFrame)
+        self.frame = self.game.transform.scale(newSurface, (self.width, self.height))
 
-    def send_message(self):
-        self.transport.write(self.MsgToSend, self.address)
+    def draw(self):
+        self.surface.fill(0)
+        self.surface.blit(self.frame, (0, 0))
+        super().draw()
 
-    def connectionLost(self, reason):
-        self.streaming_task.stop()  # Stop streaming when the server is stopped
+    def conn_lost(self):
+        image1 = self.game.image.load("objects/images/BFMC.png")
+        self.frame = self.game.transform.scale(image1, (self.width, self.height))
+
+    def update(self):
+        super().update()

@@ -28,35 +28,47 @@
 
 from objects.Object import Object
 
+
 class Button(Object):
-
-    on = False
-    states = {}
-
-    def __init__(self, x, y, game, window, width=120, height=120):
+    def __init__(self, x, y, pipe, game, window, width=120, height=120):
         super().__init__(x, y, game, window, width, height)
-        image1 = self.game.image.load('objects/images/stop.png')
+        image1 = self.game.image.load("objects/images/stop.png")
         image1 = self.game.transform.scale(image1, (self.width, self.height))
-        image2 = self.game.image.load('objects/images/start.png')
+        image2 = self.game.image.load("objects/images/start.png")
         image2 = self.game.transform.scale(image2, (self.width, self.height))
-
+        self.pipe = pipe
+        self.font = self.game.font.Font(None, 25)
+        self.rectangle = self.game.Rect(x, y, self.width, self.height)
+        self.states = {}
         self.states["on"] = image1
         self.states["off"] = image2
+        self.on = False
 
+    def colliding(self, mousePos):
+        if self.rectangle.collidepoint(mousePos):
+            return True
+        else:
+            return False
 
     def draw(self):
         self.surface.fill(0)
         if self.on:
-            self.surface.blit(self.states["on"], (0,0))
+            self.surface.blit(self.states["on"], (0, 0))
         else:
-            self.surface.blit(self.states["off"], (0,0))
+            self.surface.blit(self.states["off"], (0, 0))
+        text_x = self.width // 4 + 5
+        text_y = 3 * self.height // 5
+        text_surface = self.font.render("engine", True, (0, 0, 0))
+        self.surface.blit(text_surface, (text_x, text_y))
         super().draw()
-    
-    
+
     def update(self):
         super().update()
-        if self.focused:
-            self.on = not self.on
-
-
-    
+        if self.on is False:
+            self.pipe.send({"action": "startEngine", "value": True})
+            self.on = True
+        else:
+            self.pipe.send({"action": "startEngine", "value": False})
+            self.pipe.send({"action": "steer", "value": 0})
+            self.pipe.send({"action": "speed", "value": 0})
+            self.on = False

@@ -33,19 +33,18 @@ from utils.threadwithstop import ThreadWithStop
 
 
 class Manager(ThreadWithStop):
-
     clicked = False
     exit = False
     car_paired = False
 
     up = False
     down = False
-    right = False 
+    right = False
     left = False
 
     main_menu = False
 
-    switching = False 
+    switching = False
     curtain_radius = 0
     curtain_state = 0
     curtain_speed = 10
@@ -56,16 +55,14 @@ class Manager(ThreadWithStop):
         self.game = game
         self.window = window
         # this is the way te Manager will know which state to initialize
-        self.state=DashBoard(game,window,self)
+        self.state = DashBoard(game, window, self)
 
     # the update method calls the current state's update method
     # this method also updates the curtain if there is a change of state
-    def update(self):       
+    def update(self):
         self.state.update()
-    
+
     # the draw method calls upon the current state's method
     # this method also draws the curtain if the state has been switched
     def draw(self):
         self.state.draw()
-        
-

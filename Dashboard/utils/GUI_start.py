@@ -27,38 +27,38 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 
-# Main function of the User Interface, where the first state is initialized 
+# Main function of the User Interface, where the first state is initialized
 # The interface uses pygame, a library primarily created for games
 import pygame
 from states.DashBoard import DashBoard
 from utils.threadwithstop import ThreadWithStop
+
+
 class threadGUI_start(ThreadWithStop):
     def __init__(self, pipeRecv, pipeSend):
-        super(threadGUI_start,self).__init__()
+        super(threadGUI_start, self).__init__()
         self.pipeSend = pipeSend
         self.pipeRecv = pipeRecv
         pygame.init()
 
     def run(self):
         clock = pygame.time.Clock()
-
-        # setting the window size 
-        size = window_width, window_height = 800, 600
-        black = 0, 0, 0
+        # setting the window size
+        size = window_width, window_height = 1110, 500
         screen = pygame.display.set_mode(size)
-
-        # setting the window caption 
-        pygame.display.set_caption('BFMC Graphical Debugger')
+        last_1_sec_call_time = pygame.time.get_ticks()
+        last_60_fps_call_time = pygame.time.get_ticks()
+        # setting the window caption
+        pygame.display.set_caption("BFMC Graphical Interface")
 
         # initializing the current state, using the State Manager
         dashBoard = DashBoard(pygame, screen, self.pipeRecv, self.pipeSend)
         running = True
-
+        i = 0
         while running:
-            # setting a framerate of 60 fps
-            clock.tick(60)
+            current_time = pygame.time.get_ticks()
             # checking for all the input events that can happen (or other events can be checked here)
-            # each frame has to be updated and redrawn accordingly 
+            # each frame has to be updated and redrawn accordingly
             # every object in the program has an update method, a draw method and also an input method
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -67,14 +67,30 @@ class threadGUI_start(ThreadWithStop):
                     dashBoard.clicked = True
                 if event.type == pygame.MOUSEBUTTONUP:
                     dashBoard.clicked = False
-
-
-            dashBoard.update()
-            dashBoard.draw()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+                    dashBoard.table.update_checkbox(mouse_pos)
+                    if dashBoard.button.colliding(mouse_pos):
+                        dashBoard.button.update()
+                    if dashBoard.buttonSave.colliding(mouse_pos):
+                        dashBoard.table.update_json()
+                        dashBoard.set_text("save")
+                    if dashBoard.buttonReset.colliding(mouse_pos):
+                        dashBoard.table.reset_json()
+                        dashBoard.set_text("reset")
+                    if dashBoard.buttonLoad.colliding(mouse_pos):
+                        dashBoard.table.load()
+                        dashBoard.set_text("load")
+            if current_time - last_1_sec_call_time >= 50:  # 1000 ms = 1 second
+                dashBoard.alerts.update(0.05)
+                dashBoard.updateTimers(0.05)
+                last_1_sec_call_time = current_time
+            if current_time - last_60_fps_call_time >= 16:
+                dashBoard.update()
+                dashBoard.draw()
             pygame.display.update()
+            clock.tick(60)
         pygame.quit()
 
     def stop(self):
-        super(threadGUI_start,self).stop()
-
-
+        super(threadGUI_start, self).stop()

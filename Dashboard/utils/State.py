@@ -26,13 +26,16 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
+
 # the state class is a type of object that has a main surface to draw on
 # the states act like the phases of the User Interface
 class State:
     def __init__(self, game, window):
         self.game = game
         self.window = window
-        self.main_surface = self.game.Surface((self.window.get_width(), self.window.get_height()))
+        self.main_surface = self.game.Surface(
+            (self.window.get_width(), self.window.get_height())
+        )
         self.input()
 
     def draw(self):
@@ -44,8 +47,3 @@ class State:
 
     def input(self):
         self.mouse_x, self.mouse_y = self.game.mouse.get_pos()
-
-    
-
-
-

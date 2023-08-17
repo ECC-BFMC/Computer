@@ -30,31 +30,27 @@ from random import choice, randint
 from math import sin
 from .Object import Object
 
-class FloatingPiece(Object):
 
+class FloatingPiece(Object):
     A = 5
     w = 0.09
-    
-    def __init__(self, x, y, game, window, width = 100, height = 60):
-        super().__init__(x, y, game, window, width, height)
-        self.dx = randint(1,2)
-        image1 = self.game.image.load('objects/images/blue_car.png')
-        image1 = self.game.transform.scale(image1, (self.width, self.height))
-        image2 = self.game.image.load('objects/images/yellow_car.png')
-        image2 = self.game.transform.scale(image2, (self.width, self.height))
-        self.image = choice([image1,image2])
-        self.color = choice(['Yellow', 'Red'])
-        self.surface = self.game.Surface((self.width, self.height))
-        self.surface.set_colorkey((0,0,0))
 
-    def update(self): 
+    def __init__(self, x, y, game, window, width=100, height=60):
+        super().__init__(x, y, game, window, width, height)
+        self.dx = randint(1, 2)
+        image1 = self.game.image.load("objects/images/blue_car.png")
+        image1 = self.game.transform.scale(image1, (self.width, self.height))
+        image2 = self.game.image.load("objects/images/yellow_car.png")
+        image2 = self.game.transform.scale(image2, (self.width, self.height))
+        self.image = choice([image1, image2])
+        self.color = choice(["Yellow", "Red"])
+        self.surface = self.game.Surface((self.width, self.height))
+        self.surface.set_colorkey((0, 0, 0))
+
+    def update(self):
         self.x += self.dx
-        self.y += self.A*sin(self.w * self.x)
+        self.y += self.A * sin(self.w * self.x)
 
     def draw(self):
         self.surface.blit(self.image, (0, 0))
         super().draw()
-
-        
-        
-        

@@ -1,7 +1,61 @@
 {
-    "enable_imu":true,
-    "enable_camera":true,
-    "enable_instant_consumption":true,
-    "car_operable":false,
-    "car_running":false
+    "enable_imu": {
+        "type": "enum",
+        "defVal": "True",
+        "vals": [
+            "True",
+            "False"
+        ]
+    },
+    "enable_instant_consumption": {
+        "type": "enum",
+        "defVal": "False",
+        "vals": [
+            "True",
+            "False"
+        ]
+    },
+    "enable_autonomy": {
+        "type": "enum",
+        "defVal": "True",
+        "vals": [
+            "True",
+            "False"
+        ]
+    },
+    "enable_avg_consumption": {
+        "type": "enum",
+        "defVal": "True",
+        "vals": [
+            "True",
+            "False"
+        ]
+    },
+    "Brightness": {
+        "type": "enum",
+        "defVal": "0",
+        "vals": [
+            "-1.0",
+            "-0.5",
+            "0",
+            "0.5",
+            "1.0"
+        ]
+    },
+    "Contrast": {
+        "type": "enum",
+        "defVal": "4.0",
+        "vals": [
+            "0.0",
+            "12.0",
+            "24.0",
+            "32.0"
+        ]
+    },
+    "camera_brightness": {
+        "type": "range",
+        "defVal": 50,
+        "min": 10,
+        "max": 100
+    }
 }

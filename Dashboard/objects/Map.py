@@ -29,12 +29,12 @@
 from objects.Object import Object
 from math import pi
 
+
 class Map(Object):
-
     point_radius = 8
-    view_size = [400, 400] 
+    view_size = [400, 400]
 
-    def __init__(self, x, y, game, window, width=200, height=200, car_x = 100, car_y = 100):
+    def __init__(self, x, y, game, window, width=200, height=200, car_x=100, car_y=100):
         super().__init__(x, y, game, window, width, height)
         self.car_x = car_x
         self.car_y = car_y
@@ -42,17 +42,21 @@ class Map(Object):
         self.font = self.game.font.SysFont("Times New Roman", 20)
 
         self.rap = self.width / self.view_size[0]
-        
-        self.frame = self.game.Rect(0, 0, self.surface.get_width(), self.surface.get_height())
 
-        self.view_x = self.car_x - self.view_size[0]/2
-        self.view_y =  self.car_y - self.view_size[1]/2
-        
+        self.frame = self.game.Rect(
+            0, 0, self.surface.get_width(), self.surface.get_height()
+        )
+
+        self.view_x = self.car_x - self.view_size[0] / 2
+        self.view_y = self.car_y - self.view_size[1] / 2
+
         self.clamp()
         self.point_x = abs(self.car_x - self.view_x)
         self.point_y = abs(self.car_y - self.view_y)
-        
-        self.view = self.map_image.subsurface(self.view_x, self.view_y, self.view_size[0], self.view_size[1])
+
+        self.view = self.map_image.subsurface(
+            self.view_x, self.view_y, self.view_size[0], self.view_size[1]
+        )
         self.view = self.game.transform.scale(self.view, (self.width, self.height))
 
     def clamp(self):
@@ -66,7 +70,6 @@ class Map(Object):
         elif self.view_y + self.view_size[1] > self.map_image.get_height():
             self.view_y = self.map_image.get_height() - self.view_size[1]
 
-
         if self.car_x - self.point_radius / self.rap < 0:
             self.car_x = self.point_radius / self.rap
         elif self.car_x + self.point_radius / self.rap > self.map_image.get_width():
@@ -76,31 +79,43 @@ class Map(Object):
         elif self.car_y + self.point_radius / self.rap > self.map_image.get_height():
             self.car_y = self.map_image.get_height() - self.point_radius / self.rap
 
+    def new_coordinates(self, x, y):
+        self.car_x = x
+        self.car_y = y
+        self.update()
 
     def update(self):
-    
         self.point_x = abs(self.car_x - self.view_x)
         self.point_y = abs(self.car_y - self.view_y)
 
-        self.view_x = self.car_x - self.view_size[0]/2
-        self.view_y =  self.car_y - self.view_size[1]/2
+        self.view_x = self.car_x - self.view_size[0] / 2
+        self.view_y = self.car_y - self.view_size[1] / 2
         self.clamp()
-        
-
 
     def draw(self):
-        self.view = self.map_image.subsurface(self.view_x, self.view_y, self.view_size[0], self.view_size[1])
+        self.view = self.map_image.subsurface(
+            self.view_x, self.view_y, self.view_size[0], self.view_size[1]
+        )
         self.view = self.game.transform.scale(self.view, (self.width, self.height))
-        self.surface.blit(self.view, (0,0))
-        self.game.draw.rect(self.surface, (122,122,122), self.frame, 3)
-        self.game.draw.circle(self.surface, (0, 0, 255), (self.rap * self.point_x, self.rap * self.point_y), self.point_radius)
-        self.game.draw.circle(self.surface, (255, 255, 255), ( self.rap * self.point_x, self.rap * self.point_y), self.point_radius - 3)
+        self.surface.blit(self.view, (0, 0))
+        self.game.draw.rect(self.surface, (122, 122, 122), self.frame, 3)
+        self.game.draw.circle(
+            self.surface,
+            (0, 0, 255),
+            (self.rap * self.point_x, self.rap * self.point_y),
+            self.point_radius,
+        )
+        self.game.draw.circle(
+            self.surface,
+            (255, 255, 255),
+            (self.rap * self.point_x, self.rap * self.point_y),
+            self.point_radius - 3,
+        )
 
         north = self.font.render("X", True, (255, 255, 255))
         east = self.font.render("Y", True, (255, 255, 255))
 
         self.window.blit(north, (self.x + self.width / 2, self.y - 20))
         self.window.blit(east, (self.x - 20, self.y + self.height / 2))
-
 
         super().draw()

@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 import sys
+
 sys.path.append(".")
 from multiprocessing import Pipe
 import json
@@ -36,21 +37,22 @@ from utils.threadRemoteHandlerPC import threadRemoteHandlerPC
 piperecvFromUI, pipesendFromUI = Pipe(duplex=False)
 piperecvFromHandler, pipesendFromHandler = Pipe(duplex=False)
 
-with open('utils/PairingData.json', 'r') as file:
+with open("utils/PairingData.json", "r") as file:
     data = json.load(file)
 print(data)
-Ip= data["ip"]
-Port= data["port"]
+Ip = data["ip"]
+Port = data["port"]
 Passw = data["password"]
-UIwindow = threadGUI_start(piperecvFromHandler,pipesendFromUI)
+UIwindow = threadGUI_start(piperecvFromHandler, pipesendFromUI)
 UIwindow.start()
-remoteHandlerthread = threadRemoteHandlerPC(piperecvFromUI, pipesendFromHandler,Ip,Port,Passw)
+remoteHandlerthread = threadRemoteHandlerPC(
+    piperecvFromUI, pipesendFromHandler, Ip, Port, Passw
+)
 remoteHandlerthread.start()
 
 
 # UIwindow.continous_update()
 # UIwindow.root.mainloop()
-
 
 
 UIwindow.stop()

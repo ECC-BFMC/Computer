@@ -29,6 +29,7 @@
 # The Object class is the type of object that will be drawn inside the states,
 # such as the speedometer, the Sign Table, the Alerts, the Map, etc.
 
+
 class Object:
     # The object could also have liniar speeds, but they are initialized with 0
     # for a generic object.
@@ -37,7 +38,7 @@ class Object:
 
     # As any other entity of the U.I., the Object has a width, a height, it connects
     # to the game and the surface to draw on (the window), and it as its own surface
-    def __init__(self, x, y, game, window, width = 10, height = 10):
+    def __init__(self, x, y, game, window, width=10, height=10):
         self.x = x
         self.y = y
         self.width = width
@@ -48,23 +49,10 @@ class Object:
         self.focused = False
         self.switched = True
 
-    # movement of the object     
+    # movement of the object
     def update(self):
         pass
 
-    # what is to be rendered by the object 
+    # what is to be rendered by the object
     def draw(self):
         self.window.blit(self.surface, (self.x, self.y))
-
-    def focus(self, mouse_x, mouse_y, clicked):
-        if clicked:
-            if mouse_x > self.x and mouse_x < self.x + self.surface.get_width() and mouse_y > self.y and mouse_y < self.y + self.surface.get_height() and self.switched:
-                    self.focused = True
-                    self.switched = False
-            else:
-                self.focused = False
-        else:
-            self.switched = True   
-            
-                
-        
