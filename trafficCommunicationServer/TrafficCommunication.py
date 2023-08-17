@@ -29,26 +29,32 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)).split("trafficCommunicationServer")[0])
 
-from twisted.internet       import reactor
-from templates.threadwithstop         import ThreadWithStop
+sys.path.append(
+    os.path.dirname(os.path.realpath(__file__)).split("trafficCommunicationServer")[0]
+)
 
-from udpStream              import udpStream
-from tcpServer              import tcpServer
-from locsys_SIM             import tcpServerLocsys
-from Useful.dataDealer      import dataDealer
+from twisted.internet import reactor
+from templates.threadwithstop import ThreadWithStop
+
+from udpStream import udpStream
+from tcpServer import tcpServer
+from locsys_SIM import tcpServerLocsys
+from Useful.dataDealer import dataDealer
 
 try:
-    from Useful.periodicTask      import periodicTask
+    from Useful.periodicTask import periodicTask
+
     filename = "./Useful/privatekey_server.pem"
 except:
-    from Useful.periodicTask_test      import periodicTask
+    from Useful.periodicTask_test import periodicTask
+
     filename = "./Useful/privatekey_server_test.pem"
+
 
 class TrafficCommunication(ThreadWithStop):
     def __init__(self, streamPort=9000, commPort=5000, encrypt_key=filename):
-        super(TrafficCommunication,self).__init__()
+        super(TrafficCommunication, self).__init__()
 
         self.data_dealer = dataDealer()
 
@@ -69,13 +75,15 @@ class TrafficCommunication(ThreadWithStop):
 
     def stop(self):
         self.reactor.stop()
-        super(TrafficCommunication,self).stop()      
+        super(TrafficCommunication, self).stop()
+
 
 if __name__ == "__main__":
     traffic_communication = TrafficCommunication()
     traffic_communication.start()
-    from multiprocessing import Event 
-    blocker = Event()  
+    from multiprocessing import Event
+
+    blocker = Event()
 
     try:
         blocker.wait()
