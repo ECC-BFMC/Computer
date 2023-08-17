@@ -26,8 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-from twisted.internet import  protocol
+from twisted.internet import protocol
 import json
+
 
 # The server itself. Creates a new Protocol for each new connection and has the info for all of them.
 class tcpServer(protocol.Factory):
@@ -39,7 +40,7 @@ class tcpServer(protocol.Factory):
         try:
             self.connections[client].send_data(message)
         except:
-            print("Client not connected")  
+            print("Client not connected")
 
     def receive_data_from_client(self, client, message):
         try:
@@ -49,14 +50,21 @@ class tcpServer(protocol.Factory):
                 if msg["reqORinfo"] == "request":
                     if msg["type"] == "locsysDevice":
                         try:
-                            msg["response"] = self.data_dealer.getDeviceIP(msg["DeviceID"])
+                            msg["response"] = self.data_dealer.getDeviceIP(
+                                msg["DeviceID"]
+                            )
                         except:
                             msg["error"] = "DeviceID not found in list."
                     else:
                         msg["error"] = "request not recognised."
                     self.send_data_to_client(client, msg)
                 elif msg["reqORinfo"] == "info":
-                    if msg["type"] == "devicePos" or msg["type"] == "deviceRot" or msg["type"] == "deviceSpeed" or msg["type"] == "historyData":
+                    if (
+                        msg["type"] == "devicePos"
+                        or msg["type"] == "deviceRot"
+                        or msg["type"] == "deviceSpeed"
+                        or msg["type"] == "historyData"
+                    ):
                         self.data_dealer.modifyData(client, msg)
                     else:
                         msg["error"] = "request not recognised."
@@ -75,7 +83,8 @@ class tcpServer(protocol.Factory):
         conn = SingleConnection()
         conn.factory = self
         return conn
-   
+
+
 # One class is generated for each new connection
 class SingleConnection(protocol.Protocol):
     def connectionMade(self):

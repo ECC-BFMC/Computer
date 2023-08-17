@@ -26,28 +26,46 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-from twisted.internet import  protocol, task
+from twisted.internet import protocol, task
 import json
 import itertools
-import time 
+import time
+
 
 # The server itself. Creates a new Protocol for each new connection and has the info for all of them.
 class tcpServerLocsys(protocol.Factory):
     def __init__(self):
-        self.path = [(0.83, 14.67), (0.82, 14.29), 
-                     (1.38, 13.73), (1.76, 13.74), (2.12, 13.73),
-                     (3.05, 12.08), (3.05, 12.42), (3.05, 12.04), (3.05, 11.66), (3.05, 11.41),
-                     (2.1, 10.47),  (1.72, 10.47), (1.38, 10.46), 
-                     (0.45, 11.39), (0.46, 11.77), (0.46, 12.15), (0.45, 12.52), (0.45, 12.8),
-                     (0.45, 14.29), (0.46, 14.67)]
-     
+        self.path = [
+            (0.83, 14.67),
+            (0.82, 14.29),
+            (1.38, 13.73),
+            (1.76, 13.74),
+            (2.12, 13.73),
+            (3.05, 12.08),
+            (3.05, 12.42),
+            (3.05, 12.04),
+            (3.05, 11.66),
+            (3.05, 11.41),
+            (2.1, 10.47),
+            (1.72, 10.47),
+            (1.38, 10.46),
+            (0.45, 11.39),
+            (0.46, 11.77),
+            (0.46, 12.15),
+            (0.45, 12.52),
+            (0.45, 12.8),
+            (0.45, 14.29),
+            (0.46, 14.67),
+        ]
+
         self.frequency = 1
         self.connections = {}
 
     def buildProtocol(self, addr):
         conn = SingleConnection()
         conn.factory = self
-        return conn 
+        return conn
+
 
 # One class is generated for each new connection
 class SingleConnection(protocol.Protocol):
@@ -55,20 +73,29 @@ class SingleConnection(protocol.Protocol):
         peer = self.transport.getPeer()
         self.connectiondata = peer.host + ":" + str(peer.port)
         self.factory.connections[self.connectiondata] = self
-        print("Connection with :", self.connectiondata, " established for locsys device simulator")
+        print(
+            "Connection with :",
+            self.connectiondata,
+            " established for locsys device simulator",
+        )
         self.array_iterator = itertools.cycle(self.factory.path)
         self.streaming_task = task.LoopingCall(self.send_data)
         self.streaming_task.start(self.factory.frequency)
 
     def connectionLost(self, reason):
-        print("Connection lost with ", self.connectiondata, " due to: ", reason, "for locsys device simulator")
+        print(
+            "Connection lost with ",
+            self.connectiondata,
+            " due to: ",
+            reason,
+            "for locsys device simulator",
+        )
         del self.factory.connections[self.connectiondata]
         self.streaming_task.stop()
-        
+
     def send_data(self):
         pos = next(self.array_iterator)
-        time.sleep(1)
-        tosend = {"x":pos[0], "y":pos[1]}
+        tosend = {"x": pos[0], "y": pos[1]}
         msgtosend = json.dumps(tosend)
         self.transport.write(msgtosend.encode())
         print(tosend)
