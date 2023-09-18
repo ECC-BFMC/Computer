@@ -31,16 +31,17 @@ import time
 import json
 import random
 
-from twisted.internet       import reactor
+from twisted.internet import reactor
 from twisted.internet import task, protocol
+
 
 class udpStream(protocol.DatagramProtocol):
     def __init__(self, streamPort, frequency=0.1):
         self.address = ("<broadcast>", streamPort)
         self.frequency = frequency
 
-        #semaphores generation
-        self.semaphore_pattern = {"green":5, "yellow":2, "red":7}
+        # semaphores generation
+        self.semaphore_pattern = {"green": 5, "yellow": 2, "red": 7}
         semaphores = 4
         self.semaphore_state = []
         self.semaphore_time = []
@@ -49,25 +50,40 @@ class udpStream(protocol.DatagramProtocol):
         nowtime = time.time()
 
         for x in range(semaphores):
-            state,secs = random.choice(list(self.semaphore_pattern.items()))
+            state, secs = random.choice(list(self.semaphore_pattern.items()))
             self.semaphore_state.append(state)
             self.semaphore_time.append(nowtime)
-            self.semaphore_pos.append([x_y,x_y])
+            self.semaphore_pos.append([x_y, x_y])
             x_y += 1
 
-        #cars generation
-        self.path = [(0.83, 14.67), (0.82, 14.29), 
-                     (1.38, 13.73), (1.76, 13.74), (2.12, 13.73),
-                     (3.05, 12.08), (3.05, 12.42), (3.05, 12.04), (3.05, 11.66), (3.05, 11.41),
-                     (2.1, 10.47),  (1.72, 10.47), (1.38, 10.46), 
-                     (0.45, 11.39), (0.46, 11.77), (0.46, 12.15), (0.45, 12.52), (0.45, 12.8),
-                     (0.45, 14.29), (0.46, 14.67)]
+        # cars generation
+        self.path = [
+            (0.83, 14.67),
+            (0.82, 14.29),
+            (1.38, 13.73),
+            (1.76, 13.74),
+            (2.12, 13.73),
+            (3.05, 12.08),
+            (3.05, 12.42),
+            (3.05, 12.04),
+            (3.05, 11.66),
+            (3.05, 11.41),
+            (2.1, 10.47),
+            (1.72, 10.47),
+            (1.38, 10.46),
+            (0.45, 11.39),
+            (0.46, 11.77),
+            (0.46, 12.15),
+            (0.45, 12.52),
+            (0.45, 12.8),
+            (0.45, 14.29),
+            (0.46, 14.67),
+        ]
         cars = 1
         self.cars_pos = []
 
         for x in range(cars):
-            self.cars_pos.append(random.randint(0,len(self.path)))
-
+            self.cars_pos.append(random.randint(0, len(self.path)))
 
     def startProtocol(self):
         self.transport.setBroadcastAllowed(True)
@@ -80,14 +96,23 @@ class udpStream(protocol.DatagramProtocol):
             timepassed = nowtime - self.semaphore_time[x]
             if timepassed > self.semaphore_pattern[self.semaphore_state[x]]:
                 self.semaphore_time[x] = nowtime
-                if self.semaphore_state[x] == "red": self.semaphore_state[x] = "green"
-                elif self.semaphore_state[x] == "yellow": self.semaphore_state[x] = "red"
-                elif self.semaphore_state[x] == "green": self.semaphore_state[x] = "yellow"
-            self.sendState(x, self.semaphore_state[x], self.semaphore_pos[x][0], self.semaphore_pos[x][1])
+                if self.semaphore_state[x] == "red":
+                    self.semaphore_state[x] = "green"
+                elif self.semaphore_state[x] == "yellow":
+                    self.semaphore_state[x] = "red"
+                elif self.semaphore_state[x] == "green":
+                    self.semaphore_state[x] = "yellow"
+            self.sendState(
+                x,
+                self.semaphore_state[x],
+                self.semaphore_pos[x][0],
+                self.semaphore_pos[x][1],
+            )
 
         for x in range(len(self.cars_pos)):
             tmp = self.cars_pos[x] + 1
-            if tmp >= len(self.path): tmp = 0
+            if tmp >= len(self.path):
+                tmp = 0
             self.cars_pos[x] = tmp
             self.sendPos(x, self.path[tmp][0], self.path[tmp][1])
 
@@ -97,14 +122,14 @@ class udpStream(protocol.DatagramProtocol):
     def sendState(self, id, state, x, y):
         time.sleep(1)
         print("send")
-        value = {"device": "semaphore", "id":id, "state":state, "x":x, "y":y}
+        value = {"device": "semaphore", "id": id, "state": state, "x": x, "y": y}
         message = json.dumps(value)
-        self.transport.write(message.encode('utf-8'), self.address)
+        self.transport.write(message.encode("utf-8"), self.address)
 
     def sendPos(self, id, x, y):
-        value = {"device": "car", "id":id, "x":x, "y":y}
+        value = {"device": "car", "id": id, "x": x, "y": y}
         message = json.dumps(value)
-        self.transport.write(message.encode('utf-8'), self.address)     
+        self.transport.write(message.encode("utf-8"), self.address)
 
 
 if __name__ == "__main__":

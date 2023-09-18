@@ -95,6 +95,7 @@ class SingleConnection(protocol.Protocol):
 
     def send_data(self):
         pos = next(self.array_iterator)
+        print("????")
         tosend = {"x": pos[0], "y": pos[1]}
         msgtosend = json.dumps(tosend)
         self.transport.write(msgtosend.encode())

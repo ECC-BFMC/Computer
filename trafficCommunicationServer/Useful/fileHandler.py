@@ -28,16 +28,16 @@
 
 from threading import Lock
 
+
 class FileHandler:
+    def __init__(self, f_fileName):
+        self.outFile = open(f_fileName, "w")
+        self.lock = Lock()
 
-    def __init__(self,f_fileName):
-        self.outFile = open(f_fileName,'w')
-        self.lock    = Lock()
-
-    def write(self,f_str):
+    def write(self, f_str):
         with self.lock:
             self.outFile.write(f_str)
-            self.outFile.write("\n")    
-    
+            self.outFile.write("\n")
+
     def close(self):
         self.outFile.close()

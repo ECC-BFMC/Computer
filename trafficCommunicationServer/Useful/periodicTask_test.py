@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 from twisted.internet import task
+
+
 class periodicTask(task.LoopingCall):
     def __init__(self, interval, data_dealer):
         super().__init__(self.periodicCheck)

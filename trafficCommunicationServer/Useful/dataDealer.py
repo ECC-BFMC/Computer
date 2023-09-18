@@ -32,35 +32,36 @@ from collections import deque
 from copy import deepcopy
 import json
 
-class dataDealer():
+
+class dataDealer:
     def __init__(self):
         self.lock = threading.Lock()
         self.alldata = {}
         self.fileHandler = FileHandler("historyFile.txt")
-        data_points = deque(maxlen=30) # Creates and handles a list of maximum n points. discarding old ones when appending new data.
+        data_points = deque(
+            maxlen=30
+        )  # Creates and handles a list of maximum n points. discarding old ones when appending new data.
         self.carDataSample = {
-            "devicePos": (0.0,0.0),
+            "devicePos": (0.0, 0.0),
             "deviceRot": 0.0,
             "deviceSpeed": 0.0,
-            "historyData": data_points
+            "historyData": data_points,
         }
 
         self.devices = {
             1: "192.168.1.31:4691",
             2: "192.168.1.32:4691",
             3: "192.168.88.96:4691",
-            4: "192.168.1.34:4691"
+            4: "192.168.1.34:4691",
         }
 
         self.teams = {
-            "192.168.1.61": "Popa" ,
+            "192.168.1.61": "Popa",
             "192.168.1.62": "Lopa",
-            "192.168.1.63": "Mopa", 
+            "192.168.1.63": "Mopa",
             "192.168.1.64": "Huuuha",
-            "192.168.88.126": "TesT"
+            "192.168.88.126": "TesT",
         }
-
-
 
     def addNewconnectedCar(self, clientIp):
         tmp = deepcopy(self.carDataSample)
@@ -71,7 +72,6 @@ class dataDealer():
         if not index in self.alldata:
             with self.lock:
                 self.alldata[index] = tmp
-           
 
     def modifyData(self, client, toput):
         # Receives like: {"type": data/devicePos/deviceRot/deviceSpeed, "data":any}
@@ -83,7 +83,9 @@ class dataDealer():
         self.fileHandler.write(json.dumps(toput))
         with self.lock:
             if toput["type"] == "historyData":
-                self.alldata[index]["historyData"].append([toput["value1"],toput["value2"], toput["value3"]])
+                self.alldata[index]["historyData"].append(
+                    [toput["value1"], toput["value2"], toput["value3"]]
+                )
             elif toput["type"] == "devicePos":
                 x_y = (toput["value1"], toput["value2"])
                 self.alldata[index][toput["type"]] = x_y
@@ -91,7 +93,7 @@ class dataDealer():
                 self.alldata[index][toput["type"]] = toput["value1"]
 
     def getDeviceIP(self, id):
-        return self.devices[id] 
+        return self.devices[id]
 
     def getConnections(self):
         with self.lock:
@@ -102,6 +104,6 @@ class dataDealer():
         with self.lock:
             tmp = deepcopy(self.alldata[client])
         return tmp
-    
+
     def close(self):
         self.fileHandler.close()
