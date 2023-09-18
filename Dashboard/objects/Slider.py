@@ -29,46 +29,68 @@
 from objects.Object import Object
 
 
-class Button(Object):
-    def __init__(self, x, y, pipe, game, window, width=120, height=120):
+class Slider(Object):
+    def __init__(
+        self,
+        x,
+        y,
+        precision,
+        defValue,
+        minimum,
+        maximum,
+        game,
+        window,
+        width=120,
+        height=20,
+    ):
         super().__init__(x, y, game, window, width, height)
-        image1 = self.game.image.load("setup/images/stop.png")
-        image1 = self.game.transform.scale(image1, (self.width, self.height))
-        image2 = self.game.image.load("setup/images/start.png")
-        image2 = self.game.transform.scale(image2, (self.width, self.height))
-        self.pipe = pipe
-        self.font = self.game.font.Font(None, 25)
-        self.rectangle = self.game.Rect(x, y, self.width, self.height)
-        self.states = {}
-        self.states["on"] = image1
-        self.states["off"] = image2
-        self.on = False
+        self.minimum = minimum
+        self.maximum = maximum
+        self.precision = precision
+        self.defValue = float(defValue)
+        self.slider_width = 100
+        self.slider_height = 10
+        self.slider_x = width + self.x - self.slider_width - 40
+        self.slider_y = height + self.y
+        self.rectangle = self.game.Rect(
+            self.slider_x, self.slider_y, self.width, self.height
+        )
 
     def colliding(self, mousePos):
         if self.rectangle.collidepoint(mousePos):
-            return True
-        else:
-            return False
+            (x, y) = mousePos
+            normalized_x = (x - self.slider_x) / self.slider_width
+            number = format(
+                (self.minimum + normalized_x * (self.maximum - self.minimum)),
+                f".{self.precision}f",
+            )
+            self.defValue = str(number)
 
     def draw(self):
-        self.surface.fill(0)
-        if self.on:
-            self.surface.blit(self.states["on"], (0, 0))
-        else:
-            self.surface.blit(self.states["off"], (0, 0))
-        text_x = self.width // 4 + 5
-        text_y = 3 * self.height // 5
-        text_surface = self.font.render("engine", True, (0, 0, 0))
-        self.surface.blit(text_surface, (text_x, text_y))
+        self.game.draw.rect(
+            self.window,
+            (255, 255, 255),
+            (
+                self.slider_x,
+                self.slider_y,
+                self.slider_width,
+                self.slider_height,
+            ),
+        )
+        handle_x = (
+            self.slider_x
+            + (float(self.defValue) - self.minimum)
+            / (self.maximum - self.minimum)
+            * self.slider_width
+        )
+
+        self.game.draw.circle(
+            self.window,
+            (255, 0, 0),
+            (int(handle_x), self.slider_y + 5),
+            5,
+        )
         super().draw()
 
     def update(self):
-        super().update()
-        if self.on is False:
-            self.pipe.send({"action": "startEngine", "value": True})
-            self.on = True
-        else:
-            self.pipe.send({"action": "startEngine", "value": False})
-            self.pipe.send({"action": "steer", "value": 0})
-            self.pipe.send({"action": "speed", "value": 0})
-            self.on = False
+        pass

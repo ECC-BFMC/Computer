@@ -38,7 +38,7 @@ class Map(Object):
         super().__init__(x, y, game, window, width, height)
         self.car_x = car_x
         self.car_y = car_y
-        self.map_image = self.game.image.load("objects/images/Track.png")
+        self.map_image = self.game.image.load("setup/images/Track.png")
         self.font = self.game.font.SysFont("Times New Roman", 20)
 
         self.rap = self.width / self.view_size[0]

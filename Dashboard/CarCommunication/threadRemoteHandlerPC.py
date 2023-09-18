@@ -105,12 +105,14 @@ class SingleConnection(protocol.Protocol):
                 data = self.buffer[: self.size]
                 dat = data.decode("utf-8")
                 self.buffer = self.buffer[self.size :]
+                self.factory.pipeSend.send({"action": "engStart", "value": dat})
                 self.state = "SIZE&TYPE"
         elif self.state == "ENGINERUNNING":
             if len(self.buffer) >= self.size:
                 data = self.buffer[: self.size]
                 dat = data.decode("utf-8")
                 self.buffer = self.buffer[self.size :]
+                self.factory.pipeSend.send({"action": "engRunning", "value": dat})
                 self.state = "SIZE&TYPE"
         elif self.state == "LOCATION":
             if len(self.buffer) >= self.size:

@@ -27,6 +27,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 from objects.Object import Object
+from objects.Slider import Slider
+from objects.ScrollSlider import ScrollSlider
 import json
 import copy
 
@@ -41,9 +43,9 @@ class Table(Object):
     rows = []
     text_color = WHITE
 
-    def __init__(self, pipeSend, pipeRecv, x, y, game, window, width=600, height=300):
+    def __init__(self, pipeSend, pipeRecv, x, y, game, window, width=740, height=300):
         super().__init__(x, y, game, window, width, height)
-        self.num_columns = 3
+        self.num_columns = 4
         self.width = width
         self.height = height
         self.pipeSend = pipeSend
@@ -51,32 +53,87 @@ class Table(Object):
         self.x = x
         self.checked = []
         self.y = y
+        self.minScroll = 0
+        self.last_minScroll = 1
+        self.maxScroll = 9
+        self.startEnums = 0
+        self.stopEnums = 0
+        self.startRange = 0
+        self.stopRange = 0
+        self.startFromPI = 0
+        self.stopFromPI = 0
         self.rectangleCheckboxList = []
+        self.valuesFromPi = {}
         self.rectangleValueLIst = []
         self.rectangleOptionList = []
         self.rectangleModiffiedList = []
         self.modifiedValues = []
         self.textOptionList = []
-        self.column_width = [300, 200, 100]
+        self.column_width = [300, 300, 40, 15]
         self.font = self.game.font.SysFont(None, 25)
+        self.font_small = self.game.font.SysFont(None, 18)
         self.checkbox_size = 20
         self.checkbox_padding = 10
         self.data = {}
         self.data_raw = {}
         self.dataEnums = {}
+        self.dataRange = {}
+        self.sliders = []
+        self.scrollSlider = ScrollSlider(
+            self.x + self.width + 25,
+            self.y,
+            len(self.rectangleCheckboxList) + len(self.valuesFromPi),
+            self.game,
+            self.window,
+            width=15,
+            height=self.height,
+        )
         self.reset_json()
         self.showMenu = False
         self.valueToBeChanged = 0
         self.keyToBeChanged = ""
 
     def update(self):
-        pass
+        self.scrollSlider.update()
+
+    def addValueFromPI(self, key, value):
+        self.valuesFromPi[key] = value
 
     def load(self):
         if len(self.checked) > 0:
             for e in self.checked:
                 key = self.get_dict_key(e, self.data)
-                self.pipeSend.send({"action": key, "value": self.data[key]["defVal"]})
+                if e < len(self.dataEnums):
+                    self.pipeSend.send(
+                        {"action": key, "value": self.dataEnums[key]["defVal"]}
+                    )
+                else:
+                    self.pipeSend.send(
+                        {
+                            "action": key,
+                            "value": self.sliders[e - len(self.dataEnums)].defValue,
+                        }
+                    )
+
+    def redo_sliders(self):
+        self.sliders = []
+        for index, e in enumerate(self.dataRange.keys()):
+            slider = Slider(
+                self.column_width[0]
+                + self.checkbox_padding
+                + self.x
+                + self.checkbox_size * 3,
+                30 * (index + len(self.dataEnums)) + self.y + 5,
+                self.dataRange[e]["precision"],
+                self.dataRange[e]["defVal"],
+                self.dataRange[e]["min"],
+                self.dataRange[e]["max"],
+                self.game,
+                self.window,
+                101,
+                10,
+            )
+            self.sliders.append(slider)
 
     def update_checkbox(self, mouse_pos):
         for e in range(len(self.rectangleCheckboxList)):
@@ -86,31 +143,43 @@ class Table(Object):
                 else:
                     self.checked.remove(e)
         if self.showMenu == False:
+            for e in self.sliders:
+                e.colliding(mouse_pos)
             for e in range(len(self.rectangleValueLIst)):
-                if self.rectangleValueLIst[e].collidepoint(mouse_pos):
-                    self.showMenu = not self.showMenu
-                    self.valueToBeChanged = e
-                    self.keyToBeChanged = self.get_dict_key(e, self.dataEnums)
-                    for i in range(len(self.dataEnums[self.keyToBeChanged]["vals"])):
-                        rectangleDropdown = self.game.Rect(
-                            self.column_width[0] + self.x + self.checkbox_padding,
-                            self.checkbox_size * i
-                            + 30 * e
-                            + self.checkbox_padding
-                            + self.y,
-                            self.checkbox_size * 2 + 20,
-                            self.checkbox_size,
-                        )
-                        self.rectangleOptionList.append(rectangleDropdown)
-                        self.textOptionList.append(
-                            (
-                                self.column_width[0] + self.x + self.checkbox_padding,
+                if self.startEnums >= 0:
+                    if self.rectangleValueLIst[e - self.startEnums].collidepoint(
+                        mouse_pos
+                    ):
+                        self.showMenu = not self.showMenu
+                        self.keyToBeChanged = self.get_dict_key(e, self.dataEnums)
+                        for i in range(
+                            len(self.dataEnums[self.keyToBeChanged]["vals"])
+                        ):
+                            rectangleDropdown = self.game.Rect(
+                                self.column_width[0]
+                                + self.x
+                                + self.checkbox_padding
+                                + 100,
                                 self.checkbox_size * i
-                                + 30 * e
+                                + 30 * (self.valueToBeChanged)
                                 + self.checkbox_padding
                                 + self.y,
+                                self.checkbox_size * 2 + 20,
+                                self.checkbox_size,
                             )
-                        )
+                            self.rectangleOptionList.append(rectangleDropdown)
+                            self.textOptionList.append(
+                                (
+                                    self.column_width[0]
+                                    + self.x
+                                    + self.checkbox_padding
+                                    + 100,
+                                    self.checkbox_size * i
+                                    + 30 * (self.valueToBeChanged)
+                                    + self.checkbox_padding
+                                    + self.y,
+                                )
+                            )
         else:
             for e in range(len(self.rectangleOptionList)):
                 if self.rectangleOptionList[e].collidepoint(mouse_pos):
@@ -129,49 +198,170 @@ class Table(Object):
 
     def verify_values(self):
         self.modifiedValues = []
+        self.rectangleModiffiedList = []
         for key, value in self.dataEnums.items():
             if self.data_raw[key]["defVal"] != value["defVal"]:
                 self.modifiedValues.append(self.get_dict_number(key, self.dataEnums))
+        for index, slider in enumerate(self.sliders):
+            key = self.get_dict_key(index, self.dataRange)
+            if float(self.data_raw[key]["defVal"]) != slider.defValue:
+                self.modifiedValues.append(index + len(self.dataEnums))
         self.create_modified_rectangles()
 
     def draw(self):
+        if self.minScroll != self.last_minScroll:
+            self.last_minScroll = self.minScroll
+            self.redo_sliders()
+        self.scrollSlider.maximum = (
+            len(self.dataEnums) + len(self.dataRange) + len(self.valuesFromPi)
+        )
+        self.update()
+        self.scrollSlider.draw()
+        self.minScroll = (
+            +6
+            + len(self.dataRange)
+            + len(self.valuesFromPi)
+            - self.scrollSlider.current_value
+        )
+        self.maxScroll = (
+            len(self.dataEnums)
+            + len(self.dataRange)
+            + len(self.valuesFromPi)
+            - self.scrollSlider.current_value
+            + (self.scrollSlider.pin_range_end - self.scrollSlider.pin_range_start)
+        )
+        if self.minScroll <= len(self.dataEnums):
+            self.startEnums = self.minScroll
+        else:
+            self.startEnums = -1
+        if self.maxScroll <= len(self.dataEnums):
+            self.stopEnums = self.maxScroll
+        else:
+            self.stopEnums = len(self.dataEnums)
+            print(self.startRange, self.stopRange)
+        if len(self.dataEnums) < self.maxScroll:
+            self.startRange = (
+                self.minScroll
+                - self.maxScroll
+                + len(self.dataEnums)
+                + len(self.dataRange)
+            )
+        else:
+            self.startRange = -1
+        if len(self.dataRange) >= self.maxScroll - len(self.dataEnums) + 1:
+            self.stopRange = self.maxScroll - len(self.dataEnums) + 1
+        else:
+            self.stopRange = len(self.dataRange)
+        if len(self.dataEnums) + len(self.dataRange) <= self.maxScroll:
+            self.stopFromPI = self.maxScroll - (
+                len(self.dataEnums) + len(self.dataRange)
+            )
+            if self.minScroll <= len(self.valuesFromPi) + 1:
+                self.startFromPI = self.minScroll
+            else:
+                self.startFromPI = 0
+        else:
+            self.stopFromPI = -1
+        #############################################################
+        # checkboxes
         for e in self.rectangleCheckboxList:
             self.game.draw.rect(self.window, WHITE, e, 1)
         for e in self.checked:
             self.game.draw.rect(
                 self.window, WHITE, self.rectangleCheckboxList[e].inflate(-8, -8)
             )
-        for e in self.rectangleValueLIst:
-            self.game.draw.rect(self.window, WHITE, e, 1)
+        #############################################################
+        # modified
         for e in self.rectangleModiffiedList:
             self.game.draw.rect(self.window, RED, e.inflate(0, 0))
-        if self.found:
-            self.surface.blit(self.image, (10, 30))
+        #############################################################
+        # ENUMS
+        for index, e in enumerate(self.dataEnums.keys()):
+            if (
+                index >= self.startEnums
+                and self.startEnums >= 0
+                and index <= self.stopEnums
+            ):
+                text_surface = self.font.render(e, True, WHITE)
+                text_x = self.x + 10
+                text_y = self.y + 30 * (index - self.startEnums) + 10
+                self.window.blit(text_surface, (text_x, text_y))
+                rectangleDropdown = self.game.Rect(
+                    self.column_width[0] + self.x + self.checkbox_padding,
+                    30 * (index - self.startEnums) + self.checkbox_padding + self.y,
+                    self.checkbox_size * 2 + 20,
+                    self.checkbox_size,
+                )
+                self.game.draw.rect(self.window, WHITE, rectangleDropdown, 1)
+        for index, e in enumerate(self.dataEnums.values()):
+            if (
+                index >= self.startEnums
+                and self.startEnums >= 0
+                and index <= self.stopEnums
+            ):
+                text_surface = self.font.render(e["defVal"], True, WHITE)
+                text_x = self.x + 10 + self.column_width[0]
+                text_y = self.y + 30 * (index - self.startEnums) + 10
+                self.window.blit(text_surface, (text_x, text_y))
+        #############################################################
+        # sliders
+        for index, slider in enumerate(self.sliders):
+            if index < self.stopRange and self.startRange >= 0:
+                print("aci")
+                slider.draw()
+                text_surface = self.font.render(
+                    "Val: " + str(slider.defValue), True, WHITE
+                )
+                text_x = slider.slider_x + 45 + slider.width
+                text_y = slider.slider_y - 3
+                self.window.blit(text_surface, (text_x, text_y))
+                text_surface_min = self.font_small.render(
+                    "(" + str(slider.minimum) + ")", True, WHITE
+                )
+                text_x = slider.slider_x - 30
+                text_y = slider.slider_y
+                self.window.blit(text_surface_min, (text_x, text_y))
+                text_surface_max = self.font_small.render(
+                    "(" + str(slider.maximum) + ")", True, WHITE
+                )
+                text_x = slider.slider_x + slider.slider_width + 5
+                text_y = slider.slider_y
+                self.window.blit(text_surface_max, (text_x, text_y))
+        for index, e in enumerate(self.dataRange.keys()):
+            if index < self.stopRange and self.startRange >= 0:
+                text_surface = self.font.render(e, True, WHITE)
+                text_x = self.x + 10
+                text_y = (
+                    self.y
+                    + 30 * (index - self.maxScroll + self.stopEnums + 2)
+                    + 10
+                    + len(self.dataEnums) * 30
+                )
+                self.window.blit(text_surface, (text_x, text_y))
+        #############################################################
+        # vals from pi
+        for index, e in enumerate(self.valuesFromPi.keys()):
+            if self.stopFromPI > 0 and index >= self.startFromPI:
+                text_surface = self.font.render(e, True, WHITE)
+                text_x = self.x + 10
+                text_y = self.y + 30 * (index + self.stopRange + 2) + 10
+                self.window.blit(text_surface, (text_x, text_y))
+        for index, e in enumerate(self.valuesFromPi.values()):
+            if self.stopFromPI > 0 and index >= self.startFromPI:
+                text_surface = self.font.render(e, True, WHITE)
+                text_x = self.x + 10 + self.column_width[0]
+                text_y = self.y + 30 * (index + self.stopRange + 2) + 10
+                self.window.blit(text_surface, (text_x, text_y))
+        #############################################################
+        # cols
         sumwidth = 0
         for col in range(self.num_columns):
-            if col < 2:
-                column_rect = self.game.Rect(
-                    sumwidth + self.x, self.y, self.column_width[col], self.height
-                )
-            else:
-                column_rect = self.game.Rect(
-                    sumwidth + self.x, self.y, 2 * self.checkbox_size, self.height
-                )
+            column_rect = self.game.Rect(
+                sumwidth + self.x, self.y, self.column_width[col], self.height
+            )
             self.game.draw.rect(self.window, RED, column_rect, 1)
             sumwidth += self.column_width[col]
-            if col == 0:
-                for index, e in enumerate(self.dataEnums.keys()):
-                    text_surface = self.font.render(e, True, WHITE)
-                    text_x = self.x + 10
-                    text_y = self.y + 30 * index + 10
-                    index += 1
-                    self.window.blit(text_surface, (text_x, text_y))
-            elif col == 1:
-                for index, e in enumerate(self.dataEnums.values()):
-                    text_surface = self.font.render(e["defVal"], True, WHITE)
-                    text_x = self.x + 10 + self.column_width[0]
-                    text_y = self.y + 30 * index + 10
-                    self.window.blit(text_surface, (text_x, text_y))
+        #############################################################
         if self.showMenu:
             for e in self.rectangleOptionList:
                 self.game.draw.rect(self.window, WHITE, e.inflate(0, 0))
@@ -182,9 +372,9 @@ class Table(Object):
                     ),
                     self.textOptionList[e],
                 )
-            borderRectangleX = self.column_width[0] + self.x + 5
+            borderRectangleX = self.column_width[0] + self.x + 105
             borderRectangleY = (
-                self.y + 5 + (self.checkbox_size + 10) * self.valueToBeChanged
+                self.y + 5 + (self.checkbox_size + 10) * (self.valueToBeChanged)
             )
             borderRectangleWidth = self.checkbox_size * 2 + 30
             borderRectangleHeight = (
@@ -200,24 +390,38 @@ class Table(Object):
             self.game.draw.rect(self.window, WHITE, borderRectangle, 1)
 
     def create_rectangles(self):
-        for i, e in enumerate(self.dataEnums.keys()):
+        self.rectangleCheckboxList = []
+        self.rectangleValueLIst = []
+        for index, e in enumerate(self.dataEnums.keys()):
             rectangleCheckboxe = self.game.Rect(
                 self.column_width[0]
                 + self.column_width[1]
                 + self.checkbox_padding
                 + self.x,
-                30 * i + self.checkbox_padding + self.y,
+                30 * (index - self.startEnums) + self.checkbox_padding + self.y,
                 self.checkbox_size,
                 self.checkbox_size,
             )
-            rectangleDropdown = self.game.Rect(
-                self.column_width[0] + self.x + self.checkbox_padding,
-                30 * i + self.checkbox_padding + self.y,
-                self.checkbox_size * 2 + 20,
+            if index >= self.startEnums and self.startEnums >= 0:
+                rectangleDropdown = self.game.Rect(
+                    self.column_width[0] + self.x + self.checkbox_padding,
+                    30 * (index - self.startEnums) + self.checkbox_padding + self.y,
+                    self.checkbox_size * 2 + 20,
+                    self.checkbox_size,
+                )
+                self.rectangleValueLIst.append(rectangleDropdown)
+            self.rectangleCheckboxList.append(rectangleCheckboxe)
+        for i, e in enumerate(self.dataRange.keys()):
+            rectangleCheckboxe = self.game.Rect(
+                self.column_width[0]
+                + self.column_width[1]
+                + self.checkbox_padding
+                + self.x,
+                30 * i + self.checkbox_padding + self.y + (1 + index) * 30,
+                self.checkbox_size,
                 self.checkbox_size,
             )
             self.rectangleCheckboxList.append(rectangleCheckboxe)
-            self.rectangleValueLIst.append(rectangleDropdown)
 
     def create_modified_rectangles(self):
         for e in self.modifiedValues:
@@ -233,8 +437,14 @@ class Table(Object):
         self.modifiedValues = []
         self.rectangleModiffiedList = []
         self.data.update(self.dataEnums)
+        for index, e in enumerate(self.sliders):
+            self.dataRange[self.get_dict_key(index, self.dataRange)][
+                "defVal"
+            ] = e.defValue
+        self.data.update(self.dataRange)
         with open("utils/CarData.json", "w") as f:
             json.dump(self.data, f, indent=4)
+        self.reset_json()
 
     def get_dict_key(self, number, dictionary):
         for index, key in enumerate(dictionary.keys()):
@@ -247,15 +457,22 @@ class Table(Object):
                 return index
 
     def reset_json(self):
-        with open("utils/CarData.json", "r") as f:
+        self.minScroll = 0
+        self.maxScroll = 9
+        self.startEnums = 0
+        with open("setup/CarData.json", "r") as f:
             self.data_raw = json.load(f)
             self.data = copy.deepcopy(self.data_raw)
         for key, value in self.data.items():
             if value["type"] == "enum":
                 self.dataEnums[key] = value
+            else:
+                self.dataRange[key] = value
         self.rectangleValueLIst = []
         self.rectangleCheckboxList = []
         self.rectangleOptionList = []
         self.modifiedValues = []
         self.rectangleModiffiedList = []
+        self.redo_sliders()
+        self.valuesFromPi = {}
         self.create_rectangles()

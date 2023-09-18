@@ -94,6 +94,7 @@ class SingleConnection(protocol.Protocol):
         print("Connection with :", self.connectiondata, " established")
 
     def dataReceived(self, data):
+        print(data.decode())
         self.factory.receive_data_from_client(self.connectiondata, data.decode())
 
     def connectionLost(self, reason):
@@ -101,5 +102,6 @@ class SingleConnection(protocol.Protocol):
         del self.factory.connections[self.connectiondata]
 
     def send_data(self, message):
+        print(message)
         msg = json.dumps(message)
         self.transport.write(msg.encode())

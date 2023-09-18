@@ -30,8 +30,8 @@
 # Main function of the User Interface, where the first state is initialized
 # The interface uses pygame, a library primarily created for games
 import pygame
-from states.DashBoard import DashBoard
-from utils.threadwithstop import ThreadWithStop
+from GUI.DashBoard import DashBoard
+from CarCommunication.threadwithstop import ThreadWithStop
 
 
 class threadGUI_start(ThreadWithStop):
@@ -44,7 +44,7 @@ class threadGUI_start(ThreadWithStop):
     def run(self):
         clock = pygame.time.Clock()
         # setting the window size
-        size = window_width, window_height = 1110, 500
+        size = window_width, window_height = 1260, 500
         screen = pygame.display.set_mode(size)
         last_1_sec_call_time = pygame.time.get_ticks()
         last_60_fps_call_time = pygame.time.get_ticks()
@@ -65,9 +65,14 @@ class threadGUI_start(ThreadWithStop):
                     running = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     dashBoard.clicked = True
+                elif event.type == pygame.MOUSEMOTION:
+                    if dashBoard.clicked:
+                        mouse_pos = pygame.mouse.get_pos()
+                        dashBoard.table.update_checkbox(mouse_pos)
+                        dashBoard.table.scrollSlider.colliding(mouse_pos)
                 if event.type == pygame.MOUSEBUTTONUP:
                     dashBoard.clicked = False
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     dashBoard.table.update_checkbox(mouse_pos)
                     if dashBoard.button.colliding(mouse_pos):
@@ -81,6 +86,9 @@ class threadGUI_start(ThreadWithStop):
                     if dashBoard.buttonLoad.colliding(mouse_pos):
                         dashBoard.table.load()
                         dashBoard.set_text("load")
+                elif event.type == pygame.MOUSEWHEEL:
+                    mouse_pos = pygame.mouse.get_pos()
+                    dashBoard.table.scrollSlider.mouseWheelInteract(mouse_pos, event.y)
             if current_time - last_1_sec_call_time >= 50:  # 1000 ms = 1 second
                 dashBoard.alerts.update(0.05)
                 dashBoard.updateTimers(0.05)

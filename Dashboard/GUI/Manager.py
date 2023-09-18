@@ -28,8 +28,8 @@
 
 # the State Manager is responsible for the state interraction
 # this class represents the first layer of communication between the GUI_main class and the rest of the program
-from states.DashBoard import DashBoard
-from utils.threadwithstop import ThreadWithStop
+from GUI.DashBoard import DashBoard
+from CarCommunication.threadwithstop import ThreadWithStop
 
 
 class Manager(ThreadWithStop):

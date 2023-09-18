@@ -34,6 +34,13 @@ from PIL import Image, ImageTk
 
 
 class UI:
+    """The graphical interface.
+
+    Args:
+        pipesend (multiprocessing.pipe.Pipe): pipe for sending the data
+        piperecv (multiprocessing.pipe.Pipe): pipe for receiving the data
+    """
+
     def __init__(self, pipesend, piperecv):
         self.root = tk.Tk()
         self.pipesend = pipesend
@@ -44,9 +51,15 @@ class UI:
         self.create()
 
     def pause_main_loop(self, delay_ms):
+        """Pause funtion
+
+        Args:
+            delay_ms (int): this will be the dealy in the quit function
+        """
         self.root.after(delay_ms, self.root.quit)
 
     def create(self):
+        """This will initialize the tkinter frame"""
         self.root.geometry("560x750")
         self.root.resizable(0, 0)
         Background = tk.Frame(self.root, background="white")
@@ -193,12 +206,14 @@ class UI:
     # --------------------------------------------------------------------
 
     def plusSpeed(self):
+        """This function will increase the speed by 1"""
         speed = self.Speedslider.get() + 0.1
         if speed > 5:
             speed = 5
         self.setSpeed(speed)
 
     def minusSpeed(self):
+        """This function will reduce the speed by 1"""
         speed = self.Speedslider.get() - 0.1
         if speed < -5:
             speed - 5
@@ -208,11 +223,17 @@ class UI:
         self.setSpeed(val)
 
     def Brake(self):
+        """This function will set the speed to 0"""
         self.setSpeed(0.0)
         data = {"action": "brake", "value": 0.0}
         self.pipesend.send(data)
 
     def setSpeed(self, val):
+        """This function will send the speed
+
+        Args:
+            val (float): value to be changed
+        """
         if not (
             stack()[1].function == "plusSpeed"
             or stack()[1].function == "minusSpeed"
@@ -229,12 +250,14 @@ class UI:
     # --------------------------------------------------------------------
 
     def plusSteer(self):
+        """This function will increase the steering angle by 1"""
         steer = self.Steerslider.get() + 1.0
         if steer > 20.0:
             steer = 20.0
         self.setSteer(float(steer))
 
     def minusSteer(self):
+        """This function will reduce the steering angle by 1"""
         steer = self.Steerslider.get() - 1.0
         if steer < -20.0:
             steer = -20.0
@@ -244,6 +267,11 @@ class UI:
         self.setSteer(val)
 
     def setSteer(self, val):
+        """This function will send the steering angle
+
+        Args:
+            val (float): value to be changed
+        """
         if not (
             stack()[1].function == "plusSteer" or stack()[1].function == "minusSteer"
         ):
@@ -257,19 +285,26 @@ class UI:
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
 
-    def enableStartEngineAndRecord(self, value):
+    def enableStartEngine(self, value):
+        """This function will enable the start engine button."""
         if value == False:
             self.startEngineButton.config(state="disabled")
             self.startEngineButton.config(background="red")
-            self.startRecordingButton.config(state="disabled")
-            self.startRecordingButton.config(background="red")
         else:
             self.startEngineButton.config(state="active")
             self.startEngineButton.config(background="green")
+
+    def enableStartRecord(self, value):
+        """This function will enable the record button."""
+        if value == False:
+            self.startRecordingButton.config(state="disabled")
+            self.startRecordingButton.config(background="red")
+        else:
             self.startRecordingButton.config(state="active")
             self.startRecordingButton.config(background="green")
 
     def startEngine(self):
+        """This function will swap the start engine button states."""
         if self.started:
             self.startEngineButton.config(background="green")
             self.startEngineButton.config(text="Start Engine")
@@ -283,6 +318,7 @@ class UI:
         self.pipesend.send(data)
 
     def startRecord(self):
+        """This function will swap the record button states."""
         if self.startedRecord:
             self.startRecordingButton.config(background="green")
             self.startRecordingButton.config(text="Start Record")
@@ -326,6 +362,11 @@ class UI:
             self.my_game.item(row_id, values=updated_values)
 
     def modifyTable(self, data):
+        """This function will modify the table row if it already exists and it will ad a new raw if it doesn`t.
+
+        Args:
+            data (dictionary): A dictionary containing the id and the value.
+        """
         id, value = data
         if self.root.winfo_exists():
             for row_id in self.my_game.get_children():
@@ -339,6 +380,11 @@ class UI:
                 self.my_game.insert(parent="", index="end", iid=ida, values=(id, value))
 
     def modifyImage(self, img):
+        """This function will change the image displayed.
+
+        Args:
+            img (numpy array): this is the image that will be changed with.
+        """
         try:
             img_np = cv2.imdecode(img, cv2.IMREAD_COLOR)
             pil_image = Image.fromarray(img_np)
@@ -347,19 +393,23 @@ class UI:
             self.root.update()
         except Exception:
             print(Exception)
+            self.root.update()
 
     def continous_update(self):
+        """This function will always check if there is something on the pipe and will do the actions acordingly."""
         if self.piperecv.poll():
             msg = self.piperecv.recv()
             if msg["action"] == "modImg":
+                self.enableStartRecord(True)
                 self.modifyImage(msg["value"])
             elif msg["action"] == "enableStartEngine":
-                self.enableStartEngineAndRecord(msg["value"])
+                self.enableStartEngine(msg["value"])
                 self.modifyTable(["SYS_ENGINE_OPE", "True"])
             elif msg["action"] == "modTable":
                 self.modifyTable(msg["value"])
             elif msg["action"] == "conLost":
-                self.enableStartEngineAndRecord(msg["value"])
+                self.enableStartEngine(msg["value"])
+                self.enableStartRecord(msg["value"])
                 self.modifyTable(["SYS_ENGINE_OPE", "False"])
         self.root.after(0, self.continous_update)
 

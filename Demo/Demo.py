@@ -25,6 +25,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+"""This part will initialize the 2 threads: threadRemoateHandler and the UI thread"""
 from multiprocessing import Pipe
 from UI import UI
 from threadRemoteHandlerPC import threadRemoteHandlerPC

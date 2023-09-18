@@ -41,11 +41,17 @@ from twisted.internet import reactor, protocol, task
 
 class threadRemoteHandlerPC(ThreadWithStop):
     def __init__(self, pipeRecv, pipeSend):
+        """This thread will handle the connection between Demo and raspberry PI
+
+        Args:
+            pipeRecv (multiprocessing.pipe.Pipe): Receving pipe
+            pipeSend (multiprocessing.pipe.Pipe): Sending pipe
+        """
         super(threadRemoteHandlerPC, self).__init__()
         self.pipeSend = pipeSend
         self.factory = FactoryDealer(self.pipeSend)
         self.reactor = reactor
-        self.reactor.connectTCP("192.168.88.126", 5000, self.factory)
+        self.reactor.connectTCP("192.168.28.78", 5000, self.factory)
         self.task = PeriodicTask(
             self.factory, 0.001, pipeRecv
         )  # Replace X with the desired number of seconds
@@ -91,13 +97,21 @@ class SingleConnection(protocol.Protocol):
         }
 
     def dataReceived(self, data):
+        """This function will get the data and will process it. Firstly the date will be process in the SIZE&TYPE state where we will find how bing and what type is the message we will receive.
+
+
+        Args:
+            data (bytes): groups of data received.
+        """
         self.buffer += data
         if self.state == "SIZE&TYPE":
             if len(self.buffer) >= self.size:  # is_json 5
                 self.type = int.from_bytes(self.buffer[:1], byteorder="big")
                 self.size = int.from_bytes(self.buffer[2:5], byteorder="big")
                 self.buffer = self.buffer[5:]
-                self.state = self.states[self.type]
+                self.state = self.states[
+                    self.type
+                ]  # this will change the state depending of the type of the received message.
         elif self.state == "IMAGE":
             if len(self.buffer) >= self.size:
                 img_data = self.buffer[: self.size]
@@ -184,6 +198,7 @@ class SingleConnection(protocol.Protocol):
                 self.state = "SIZE&TYPE"
 
     def connectionLost(self, reason):
+        """Function for connectionLost"""
         self.factory.isConnected = False
         self.factory.connection = None
         self.factory.pipeSend.send({"action": "conLost", "value": False})
@@ -195,6 +210,7 @@ class SingleConnection(protocol.Protocol):
         )
 
     def send_data(self, message):
+        """Function for sending data to PI"""
         if isinstance(message, dict):
             msg = json.dumps(message)
         else:

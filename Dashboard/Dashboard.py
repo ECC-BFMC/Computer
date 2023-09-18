@@ -31,13 +31,13 @@ import sys
 sys.path.append(".")
 from multiprocessing import Pipe
 import json
-from utils.GUI_start import threadGUI_start
-from utils.threadRemoteHandlerPC import threadRemoteHandlerPC
+from GUI.GUI_start import threadGUI_start
+from CarCommunication.threadRemoteHandlerPC import threadRemoteHandlerPC
 
 piperecvFromUI, pipesendFromUI = Pipe(duplex=False)
 piperecvFromHandler, pipesendFromHandler = Pipe(duplex=False)
 
-with open("utils/PairingData.json", "r") as file:
+with open("setup/PairingData.json", "r") as file:
     data = json.load(file)
 print(data)
 Ip = data["ip"]
@@ -49,12 +49,6 @@ remoteHandlerthread = threadRemoteHandlerPC(
     piperecvFromUI, pipesendFromHandler, Ip, Port, Passw
 )
 remoteHandlerthread.start()
-
-
-# UIwindow.continous_update()
-# UIwindow.root.mainloop()
-
-
 UIwindow.stop()
 UIwindow.join()
 remoteHandlerthread.stop()

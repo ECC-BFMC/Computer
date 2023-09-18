@@ -28,60 +28,23 @@
 
 
 from objects.Object import Object
+import json
 
 
 class Alerts(Object):
-    lights = {}
-    timer = 0
-    count = 0
-
-    names = {
-        "trafficLight": 3.0,
-        "stop": 3.0,
-        "park": 0,
-        "cross": 3.0,
-        "highwayIn": 0,
-        "highwayOut": 0,
-        "round": 0,
-        "oneWay": 0,
-        "carAhead": 0,
-        "carParking": 0,
-        "pedOnRoad": 0,
-        "pedOnCross": 0,
-        "roadBlock": 0,
-        "bumpyRoad": 0,
-        "intersection": 0,
-    }
-
-    values = {
-        "trafficLight": True,
-        "stop": True,
-        "park": False,
-        "cross": True,
-        "highwayIn": False,
-        "highwayOut": False,
-        "round": False,
-        "oneWay": False,
-        "carAhead": False,
-        "carParking": False,
-        "pedOnRoad": False,
-        "pedOnCross": False,
-        "roadBlock": False,
-        "bumpyRoad": False,
-        "intersection": False,
-    }
-
     def __init__(self, x, y, game, window, size=300):
         self.square = size / 5
-        height = self.square * 3
+        height = self.square * 5
         self.seconds_fadeaway = 3.0
+        self.lights = {}
         super().__init__(x, y, game, window, size, height)
         self.frame = self.game.Rect(
             0, 0, self.surface.get_width(), self.surface.get_height()
         )
+        self.read()
         for name in self.names.keys():
             # self.values[name] = True
-            image = self.game.image.load("objects/images/lights/" + name + ".png")
+            image = self.game.image.load("setup/images/lights/" + name + ".png")
             image = self.game.transform.scale(image, (self.square, self.square))
             self.lights[name] = image
 
@@ -89,10 +52,10 @@ class Alerts(Object):
         for key, value in self.names.items():
             self.names[key] = value - timePassed
             if self.names[key] < 0:
-                self.values[key] = False
+                self.values[key] = "False"
 
     def setValues(self, value):
-        self.values[value] = True
+        self.values[value] = "True"
         self.names[value] = self.seconds_fadeaway
 
     def draw(self):
@@ -100,7 +63,7 @@ class Alerts(Object):
         i = 0
         j = 0
         for name in self.names:
-            if self.values[name]:
+            if self.values[name] == "True":
                 self.lights[name].set_alpha(
                     255 / self.seconds_fadeaway * self.names[name]
                 )
@@ -113,3 +76,9 @@ class Alerts(Object):
 
         self.game.draw.rect(self.surface, (122, 122, 122), self.frame, 3)
         super().draw()
+
+    def read(self):
+        with open("setup/Alerts.json", "r") as f:
+            self.data = json.load(f)
+        self.names = self.data["names"]
+        self.values = self.data["values"]
