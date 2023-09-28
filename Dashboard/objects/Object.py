@@ -35,6 +35,18 @@ class Object:
     # for a generic object.
     dx = 0
     dy = 0
+    """
+    Initialize a basic rectangular object.
+
+    Args:
+        x (int): The x-coordinate of the object.
+        y (int): The y-coordinate of the object.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the object (default is 10).
+        height (int, optional): The height of the object (default is 10).
+
+    """
 
     # As any other entity of the U.I., the Object has a width, a height, it connects
     # to the game and the surface to draw on (the window), and it as its own surface
@@ -55,4 +67,11 @@ class Object:
 
     # what is to be rendered by the object
     def draw(self):
+        """
+        Draw the object on the game window.
+
+        This method blits the object's surface onto the game window at its current
+        coordinates.
+
+        """
         self.window.blit(self.surface, (self.x, self.y))

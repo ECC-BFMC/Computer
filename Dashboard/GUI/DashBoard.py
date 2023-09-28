@@ -37,6 +37,22 @@ from math import pi
 
 
 class DashBoard(State):
+    """
+    Initialize a new instance of the class with various attributes.
+
+    Args:
+        game: The game object.
+        window: The window object.
+        pipeRecv (multiprocessing.Pipe): The pipe for receiving data.
+        pipeSend (multiprocessing.Pipe): The pipe for sending data.
+        speed (int, optional): The initial speed (default is 0).
+        position (tuple, optional): The initial position (default is (0, 0)).
+        battery (int, optional): The initial battery level (default is 100).
+        lane_error (int, optional): The initial lane error (default is 0).
+        steer (int, optional): The initial steering value (default is 0).
+
+    """
+
     angle_change = 2
     steer_change = error_change = battery_dx = 1
     clicked = False
@@ -85,7 +101,14 @@ class DashBoard(State):
         self.font_big = self.game.font.SysFont(None, 70)
         self.font_small = self.game.font.SysFont(None, 30)
         self.font_little = self.game.font.SysFont(None, 25)
-        self.button = Button(500, 350, self.pipeSend, self.game, self.main_surface)
+        self.buttonAutonomEnable = True
+        self.buttonSpeedEnable = True
+        self.button = Button(
+            500, 350, self.pipeSend, self.game, self.main_surface, "autonom"
+        )
+        self.button2 = Button(
+            650, 350, self.pipeSend, self.game, self.main_surface, "speed"
+        )
         self.map = Map(40, 30, self.game, self.main_surface, car_x=230, car_y=1920)
         self.alerts = Alerts(20, 240, self.game, self.main_surface, 250)
         self.table = Table(
@@ -105,6 +128,16 @@ class DashBoard(State):
         self.objects = [self.map, self.alerts, self.table, self.camera]
 
     def blitRotate(self, surf, image, pos, originPos, angle):
+        """
+        Rotate an image and blit it onto a surface.
+
+        Args:
+            surf: The target surface where the rotated image will be blitted.
+            image: The image to be rotated and blitted.
+            pos (tuple): The position (x, y) where the rotated image will be blitted.
+            originPos (tuple): The pivot point (x, y) around which the image will be rotated.
+            angle (float): The angle in degrees by which the image will be rotated.
+        """
         image_rect = image.get_rect(
             topleft=(pos[0] - originPos[0], pos[1] - originPos[1])
         )
@@ -116,6 +149,12 @@ class DashBoard(State):
         surf.blit(rotated_image, rotated_image_rect)
 
     def continous_update(self):
+        """
+        Continuously update the class attributes based on received messages.
+
+        This method listens for incoming messages on the `pipeRecv` pipe and updates
+        the class attributes accordingly, depending on the message type.
+        """
         if self.pipeRecv.poll():
             msg = self.pipeRecv.recv()
             if msg["action"] == "steering":
@@ -144,13 +183,40 @@ class DashBoard(State):
                 self.camera.conn_lost()
 
     def updateTimers(self, timePassed):
+        """
+        Update timers associated with named actions.
+
+        This method updates timers for named actions stored in the `names` dictionary.
+        It subtracts the specified `timePassed` from the timers.
+
+        Args:
+            timePassed (float): The time passed, in seconds.
+        """
         for key, value in self.names.items():
             self.names[key] = value - timePassed
 
     def set_text(self, text):
+        """
+        Set a timer for a named action.
+
+        This method sets a timer for a named action specified by the `text` parameter.
+        The timer is initially set to 3.0 seconds.
+
+        Args:
+            text (str): The name of the action.
+        """
         self.names[text] = 3.0
 
     def update(self):
+        """
+        Update the class state.
+
+        This method updates the class state by performing the following actions:
+        1. Calls the superclass's update method using `super()`.
+        2. Calls the `continous_update` method to process incoming messages and update attributes.
+        3. Calls the `input` method to handle user input.
+        4. Adjusts the `battery_color` attribute based on the current battery level.
+        """
         super().update()
         self.continous_update()
         self.input()
@@ -161,14 +227,35 @@ class DashBoard(State):
         )
 
     def rad_to_degrees(self, angle):
+        """
+        Convert an angle from radians to degrees.
+
+        Args:
+            angle (float): The angle in radians to be converted.
+
+        """
         converted = angle * 180 / pi
         return converted
 
     def deg_to_radians(self, angle):
+        """
+        Convert an angle from degrees to radians.
+
+        Args:
+            angle (float): The angle in degrees to be converted.
+
+        """
         converted = angle * pi / 180
         return converted
 
     def draw(self):
+        """
+        Draw the graphical elements on the main surface.
+
+        This method clears the main surface, draws operation success messages with fading,
+        draws various objects, buttons, battery level, speed image, and the little car image.
+
+        """
         self.main_surface.fill(0)
         for key, value in self.names.items():
             if value > 0:
@@ -180,8 +267,10 @@ class DashBoard(State):
 
         for object in self.objects:
             object.draw()
-
-        self.button.draw()
+        if self.buttonAutonomEnable:
+            self.button.draw()
+        if self.buttonSpeedEnable:
+            self.button2.draw()
         self.buttonSave.draw()
         self.buttonLoad.draw()
         self.buttonReset.draw()

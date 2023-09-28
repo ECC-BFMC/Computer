@@ -34,6 +34,16 @@ import numpy as np
 
 
 class threadRemoteHandlerPC(ThreadWithStop):
+    """This thread will handle the connection between Demo and raspberry PI
+
+    Args:
+        pipeRecv (multiprocessing.pipe.Pipe): Receving pipe
+        pipeSend (multiprocessing.pipe.Pipe): Sending pipe
+        Ip(String): Ip to connect
+        Port(String) : port to connect
+        Passw(String) : Passw to conect
+    """
+
     def __init__(self, pipeRecv, pipeSend, Ip, Port, Passw):
         super(threadRemoteHandlerPC, self).__init__()
         self.pipeSend = pipeSend
@@ -57,12 +67,12 @@ class threadRemoteHandlerPC(ThreadWithStop):
 
 
 import base64
-import cv2
 
 
 # One class is generated for each new connection
 class SingleConnection(protocol.Protocol):
     def connectionMade(self):
+        """This function will be called only if the connection was made."""
         peer = self.transport.getPeer()
         self.factory.connectiondata = peer.host + ":" + str(peer.port)
         print("Trying connection with server :", self.factory.connectiondata)
@@ -74,6 +84,11 @@ class SingleConnection(protocol.Protocol):
         self.size = 0
 
     def dataReceived(self, data):
+        """This function will be called only when we receive a pack of data.
+
+        Args:
+            data (string): this will be the pack of data received.
+        """
         self.buffer += data
         if self.state == "SIZE&TYPE":
             if len(self.buffer) >= 5:  # is_json 5
@@ -131,6 +146,11 @@ class SingleConnection(protocol.Protocol):
                 self.state = "SIZE&TYPE"
 
     def connectionLost(self, reason):
+        """This function will be called when we lost connection.
+
+        Args:
+            reason (String): Reason of losing connection.
+        """
         self.factory.isConnected = False
         self.factory.connection = None
         self.factory.pipeSend.send({"action": "enableStartEngine", "value": False})
@@ -143,6 +163,11 @@ class SingleConnection(protocol.Protocol):
         )
 
     def send_data(self, message):
+        """We use this function to send messages.
+
+        Args:
+            message (String): message to be send
+        """
         if isinstance(message, dict):
             msg = json.dumps(message)
         else:
@@ -153,6 +178,12 @@ class SingleConnection(protocol.Protocol):
 
 # The server itself. Creates a new Protocol for each new connection and has the info for all of them.
 class FactoryDealer(protocol.ClientFactory):
+    """This class handle sending informations.
+    Args:
+        pipeSend (multiprocessing.pipe.Pipe): Pipe for sending data.
+        passw (String): Password t oconnect.
+    """
+
     def __init__(self, pipeSend, passw):
         self.connection = None
         self.isConnected = False
@@ -161,6 +192,11 @@ class FactoryDealer(protocol.ClientFactory):
         self.passw = passw
 
     def send_data_to_client(self, message):
+        """If client is connected this function will send the message to the connected device.
+
+        Args:
+            message (String): Message to be send.
+        """
         if self.isConnected == True:
             self.connection.send_data(message)
         else:

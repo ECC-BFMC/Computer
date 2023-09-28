@@ -30,6 +30,21 @@ from objects.Object import Object
 
 
 class Slider(Object):
+    """
+    Initialize a numerical input slider.
+    Args:
+        x (int): The x-coordinate of the slider.
+        y (int): The y-coordinate of the slider.
+        precision (int): The precision of the numerical value.
+        defValue (float): The default value of the slider.
+        minimum (float): The minimum value the slider can represent.
+        maximum (float): The maximum value the slider can represent.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the slider (default is 120).
+        height (int, optional): The height of the slider (default is 20).
+    """
+
     def __init__(
         self,
         x,
@@ -57,6 +72,13 @@ class Slider(Object):
         )
 
     def colliding(self, mousePos):
+        """
+        Check if the mouse cursor collides with the slider.
+
+        Args:
+            mousePos (tuple): The mouse cursor's position (x, y).
+
+        """
         if self.rectangle.collidepoint(mousePos):
             (x, y) = mousePos
             normalized_x = (x - self.slider_x) / self.slider_width
@@ -67,6 +89,10 @@ class Slider(Object):
             self.defValue = str(number)
 
     def draw(self):
+        """
+        Draw the slider on the window.
+
+        """
         self.game.draw.rect(
             self.window,
             (255, 255, 255),

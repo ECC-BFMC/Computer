@@ -30,7 +30,22 @@ from objects.Object import Object
 
 
 class Button(Object):
-    def __init__(self, x, y, pipe, game, window, width=120, height=120):
+    """
+    Initialize a toggle button with images for "on" and "off" states.
+
+    Args:
+        x (int): The x-coordinate of the button.
+        y (int): The y-coordinate of the button.
+        pipe: The pipe for communication.
+        game: The game object.
+        window: The window object.
+        text (str, optional): The text label for the button (default is empty).
+        width (int, optional): The width of the button (default is 120).
+        height (int, optional): The height of the button (default is 120).
+
+    """
+
+    def __init__(self, x, y, pipe, game, window, text="", width=120, height=120):
         super().__init__(x, y, game, window, width, height)
         image1 = self.game.image.load("setup/images/stop.png")
         image1 = self.game.transform.scale(image1, (self.width, self.height))
@@ -40,29 +55,54 @@ class Button(Object):
         self.font = self.game.font.Font(None, 25)
         self.rectangle = self.game.Rect(x, y, self.width, self.height)
         self.states = {}
+        self.text = text
         self.states["on"] = image1
         self.states["off"] = image2
         self.on = False
 
     def colliding(self, mousePos):
+        """
+        Check if the mouse position collides with the button's rectangle.
+
+        Args:
+            mousePos (tuple): The mouse position as a tuple (x, y).
+
+        Returns:
+            bool: True if the mouse position collides with the button's rectangle, False otherwise.
+        """
         if self.rectangle.collidepoint(mousePos):
             return True
         else:
             return False
 
     def draw(self):
+        """
+        Draw the toggle button on the surface.
+
+        This method fills the surface with a background color and displays the appropriate image
+        based on the current state ("on" or "off"). It also renders the button's text label.
+
+        """
         self.surface.fill(0)
         if self.on:
             self.surface.blit(self.states["on"], (0, 0))
         else:
             self.surface.blit(self.states["off"], (0, 0))
-        text_x = self.width // 4 + 5
+        text_x = self.width // 4
         text_y = 3 * self.height // 5
-        text_surface = self.font.render("engine", True, (0, 0, 0))
+        text_surface = self.font.render(self.text, True, (0, 0, 0))
         self.surface.blit(text_surface, (text_x, text_y))
         super().draw()
 
     def update(self):
+        """
+        Update the toggle button's state and send control commands.
+
+        This method updates the state of the toggle button and sends control commands based on
+        whether the button is in the "on" or "off" state. It sends commands to start or stop
+        the engine, reset steering, and set speed to zero.
+
+        """
         super().update()
         if self.on is False:
             self.pipe.send({"action": "startEngine", "value": True})

@@ -33,6 +33,20 @@ from math import pi
 class Map(Object):
     point_radius = 8
     view_size = [400, 400]
+    """
+    Initialize a map object.
+
+    Args:
+        x (int): The x-coordinate of the map.
+        y (int): The y-coordinate of the map.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the map (default is 200).
+        height (int, optional): The height of the map (default is 200).
+        car_x (int, optional): The x-coordinate of the car (default is 100).
+        car_y (int, optional): The y-coordinate of the car (default is 100).
+
+    """
 
     def __init__(self, x, y, game, window, width=200, height=200, car_x=100, car_y=100):
         super().__init__(x, y, game, window, width, height)
@@ -60,6 +74,13 @@ class Map(Object):
         self.view = self.game.transform.scale(self.view, (self.width, self.height))
 
     def clamp(self):
+        """
+        Ensure the map view and car position remain within valid boundaries.
+
+        This method adjusts the map view and car position to ensure they do not go beyond
+        the boundaries of the map image.
+
+        """
         if self.view_x < 0:
             self.view_x = 0
         elif self.view_x + self.view_size[0] > self.map_image.get_width():
@@ -80,11 +101,26 @@ class Map(Object):
             self.car_y = self.map_image.get_height() - self.point_radius / self.rap
 
     def new_coordinates(self, x, y):
+        """
+        Update the car's coordinates on the map.
+
+        Args:
+            x (float): The new x-coordinate for the car.
+            y (float): The new y-coordinate for the car.
+
+        """
         self.car_x = x
         self.car_y = y
         self.update()
 
     def update(self):
+        """
+        Update the map view and car's position.
+
+        This method updates the map view based on the car's position and ensures it remains
+        within valid boundaries.
+
+        """
         self.point_x = abs(self.car_x - self.view_x)
         self.point_y = abs(self.car_y - self.view_y)
 
@@ -93,6 +129,13 @@ class Map(Object):
         self.clamp()
 
     def draw(self):
+        """
+        Draw the map and car's position on the surface.
+
+        This method renders the map view, car's position indicator, and cardinal direction
+        labels on the surface.
+
+        """
         self.view = self.map_image.subsurface(
             self.view_x, self.view_y, self.view_size[0], self.view_size[1]
         )

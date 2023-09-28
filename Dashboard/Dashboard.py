@@ -28,27 +28,42 @@
 
 import sys
 
+# Append the current directory to the Python path
 sys.path.append(".")
+
+# Import required modules
 from multiprocessing import Pipe
 import json
 from GUI.GUI_start import threadGUI_start
 from CarCommunication.threadRemoteHandlerPC import threadRemoteHandlerPC
 
+# Create pipes for communication
 piperecvFromUI, pipesendFromUI = Pipe(duplex=False)
 piperecvFromHandler, pipesendFromHandler = Pipe(duplex=False)
 
+# Load data from a JSON file
 with open("setup/PairingData.json", "r") as file:
     data = json.load(file)
 print(data)
+
+# Extract values from the loaded data
 Ip = data["ip"]
 Port = data["port"]
 Passw = data["password"]
+
+# Create and start the GUI thread
 UIwindow = threadGUI_start(piperecvFromHandler, pipesendFromUI)
 UIwindow.start()
+
+# Create and start the remote handler thread
 remoteHandlerthread = threadRemoteHandlerPC(
     piperecvFromUI, pipesendFromHandler, Ip, Port, Passw
 )
 remoteHandlerthread.start()
+
+# Stop and join the GUI thread
 UIwindow.stop()
 UIwindow.join()
+
+# Stop the remote handler thread
 remoteHandlerthread.stop()

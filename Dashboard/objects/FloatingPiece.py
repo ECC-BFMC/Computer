@@ -34,6 +34,18 @@ from .Object import Object
 class FloatingPiece(Object):
     A = 5
     w = 0.09
+    """
+    Initialize a car object.
+
+    Args:
+        x (int): The x-coordinate of the car.
+        y (int): The y-coordinate of the car.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the car (default is 100).
+        height (int, optional): The height of the car (default is 60).
+
+    """
 
     def __init__(self, x, y, game, window, width=100, height=60):
         super().__init__(x, y, game, window, width, height)
@@ -48,9 +60,21 @@ class FloatingPiece(Object):
         self.surface.set_colorkey((0, 0, 0))
 
     def update(self):
+        """
+        Update the car's position.
+
+        This method updates the car's x and y coordinates based on a predefined formula.
+
+        """
         self.x += self.dx
         self.y += self.A * sin(self.w * self.x)
 
     def draw(self):
+        """
+        Draw the car on the surface.
+
+        This method blits the car's image onto the surface.
+
+        """
         self.surface.blit(self.image, (0, 0))
         super().draw()

@@ -35,6 +35,14 @@ from CarCommunication.threadwithstop import ThreadWithStop
 
 
 class threadGUI_start(ThreadWithStop):
+    """
+    Initialize a threadGUI_start object.
+
+    Args:
+        pipeRecv (multiprocessing.Pipe): The pipe for receiving data in the GUI thread.
+        pipeSend (multiprocessing.Pipe): The pipe for sending data from the GUI thread.
+    """
+
     def __init__(self, pipeRecv, pipeSend):
         super(threadGUI_start, self).__init__()
         self.pipeSend = pipeSend
@@ -42,6 +50,12 @@ class threadGUI_start(ThreadWithStop):
         pygame.init()
 
     def run(self):
+        """
+        Run the graphical interface thread.
+
+        This method initializes the graphical interface, handles user input events, updates
+        the interface components, and manages the display loop.
+        """
         clock = pygame.time.Clock()
         # setting the window size
         size = window_width, window_height = 1260, 500
@@ -75,8 +89,18 @@ class threadGUI_start(ThreadWithStop):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     dashBoard.table.update_checkbox(mouse_pos)
-                    if dashBoard.button.colliding(mouse_pos):
-                        dashBoard.button.update()
+                    if dashBoard.buttonAutonomEnable:
+                        if dashBoard.button.colliding(mouse_pos):
+                            dashBoard.button.update()
+                            dashBoard.buttonSpeedEnable = (
+                                not dashBoard.buttonSpeedEnable
+                            )
+                    if dashBoard.buttonSpeedEnable:
+                        if dashBoard.button2.colliding(mouse_pos):
+                            dashBoard.button2.update()
+                            dashBoard.buttonAutonomEnable = (
+                                not dashBoard.buttonAutonomEnable
+                            )
                     if dashBoard.buttonSave.colliding(mouse_pos):
                         dashBoard.table.update_json()
                         dashBoard.set_text("save")

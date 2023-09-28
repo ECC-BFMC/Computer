@@ -32,6 +32,19 @@ import numpy as np
 
 
 class Camera(Object):
+    """
+    Initialize a graphical logo button.
+
+    Args:
+        x (int): The x-coordinate of the button.
+        y (int): The y-coordinate of the button.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the button (default is 220).
+        height (int, optional): The height of the button (default is 120).
+
+    """
+
     def __init__(self, x, y, game, window, width=220, height=120):
         super().__init__(x, y, game, window, width, height)
         image1 = self.game.image.load("setup/images/BFMC.png")
@@ -41,6 +54,13 @@ class Camera(Object):
         self.on = False
 
     def change_frame(self, newFrame):
+        """
+        Change the displayed frame of the graphical logo button.
+
+        Args:
+            newFrame: The new frame data to be displayed.
+
+        """
         newFrame = cv2.imdecode(newFrame, cv2.IMREAD_COLOR)
         newFrame = np.rot90(newFrame)
         newFrame = np.flip(newFrame, axis=0)
@@ -48,11 +68,21 @@ class Camera(Object):
         self.frame = self.game.transform.scale(newSurface, (self.width, self.height))
 
     def draw(self):
+        """
+        Draw the graphical logo button on the surface.
+
+        This method fills the surface with a background color and displays the current frame.
+
+        """
         self.surface.fill(0)
         self.surface.blit(self.frame, (0, 0))
         super().draw()
 
     def conn_lost(self):
+        """
+        Set the frame to the BFMC logo image when the connection is lost.
+
+        """
         image1 = self.game.image.load("objects/images/BFMC.png")
         self.frame = self.game.transform.scale(image1, (self.width, self.height))
 

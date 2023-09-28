@@ -32,6 +32,17 @@ import json
 
 
 class Alerts(Object):
+    """
+    Initialize an instance of the class.
+
+    Args:
+        x (int): The x-coordinate of the instance.
+        y (int): The y-coordinate of the instance.
+        game: The game object.
+        window: The window object.
+        size (int, optional): The size of the instance (default is 300).
+    """
+
     def __init__(self, x, y, game, window, size=300):
         self.square = size / 5
         height = self.square * 5
@@ -49,16 +60,37 @@ class Alerts(Object):
             self.lights[name] = image
 
     def update(self, timePassed):
+        """
+        Update timers associated with named actions and set values to "False" when timers expire.
+
+        Args:
+            timePassed (float): The time passed, in seconds.
+
+        """
         for key, value in self.names.items():
             self.names[key] = value - timePassed
             if self.names[key] < 0:
                 self.values[key] = "False"
 
     def setValues(self, value):
+        """
+        Set a named value to "True" and initialize its associated timer.
+
+        Args:
+            value (str): The name of the value to be set.
+
+        """
         self.values[value] = "True"
         self.names[value] = self.seconds_fadeaway
 
     def draw(self):
+        """
+        Draw the lights on the surface.
+
+        This method fills the surface with a background color and draws lights that are set
+        to "True" based on their timers and alpha values.
+
+        """
         self.surface.fill(0)
         i = 0
         j = 0
@@ -78,6 +110,13 @@ class Alerts(Object):
         super().draw()
 
     def read(self):
+        """
+        Read data from a JSON file to initialize names and values.
+
+        This method reads data from a JSON file located at "setup/Alerts.json" to initialize
+        the `names` and `values` attributes.
+
+        """
         with open("setup/Alerts.json", "r") as f:
             self.data = json.load(f)
         self.names = self.data["names"]

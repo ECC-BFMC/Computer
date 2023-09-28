@@ -38,6 +38,21 @@ RED = (255, 0, 0)
 
 
 class Table(Object):
+    """
+    Initialize a table for displaying data with checkboxes and sliders.
+
+    Args:
+        pipeSend: The pipe for sending data.
+        pipeRecv: The pipe for receiving data.
+        x (int): The x-coordinate of the table.
+        y (int): The y-coordinate of the table.
+        game: The game object.
+        window: The window object.
+        width (int, optional): The width of the table (default is 740).
+        height (int, optional): The height of the table (default is 300).
+
+    """
+
     title = "Messages"
     found = False
     rows = []
@@ -94,12 +109,31 @@ class Table(Object):
         self.keyToBeChanged = ""
 
     def update(self):
+        """
+        Update the table's state and scroll slider.
+        """
         self.scrollSlider.update()
 
     def addValueFromPI(self, key, value):
+        """
+        Add a value received from the Raspberry Pi to the table.
+
+        Args:
+            key (str): The key associated with the value.
+            value: The value received from the Raspberry Pi.
+        """
         self.valuesFromPi[key] = value
 
     def load(self):
+        """
+        Load values from the GUI to the Raspberry Pi.
+
+        This method sends the selected values from the GUI to the Raspberry Pi for loading.
+
+        Note:
+            It sends either default enum values or slider values based on the selected checkboxes.
+
+        """
         if len(self.checked) > 0:
             for e in self.checked:
                 key = self.get_dict_key(e, self.data)
@@ -116,6 +150,15 @@ class Table(Object):
                     )
 
     def redo_sliders(self):
+        """
+        Redo the sliders in the GUI based on data range specifications.
+
+        This method recreates the slider objects in the GUI based on the data range specifications.
+
+        Note:
+            It clears the existing sliders and creates new ones according to the data range.
+
+        """
         self.sliders = []
         for index, e in enumerate(self.dataRange.keys()):
             slider = Slider(
@@ -136,6 +179,15 @@ class Table(Object):
             self.sliders.append(slider)
 
     def update_checkbox(self, mouse_pos):
+        """
+        Update checkbox interactions in the GUI.
+
+        This method handles interactions with checkboxes, sliders, and dropdown menus based on mouse positions.
+
+        Args:
+            mouse_pos (tuple): The mouse cursor's position (x, y).
+
+        """
         for e in range(len(self.rectangleCheckboxList)):
             if self.rectangleCheckboxList[e].collidepoint(mouse_pos):
                 if e not in self.checked:
@@ -192,11 +244,24 @@ class Table(Object):
         self.verify_values()
 
     def saveValues(self):
+        """
+        Save modified values to the saved_values_mod dictionary.
+
+        This method iterates through the current values and updates the corresponding values in the saved_values_mod dictionary.
+
+        """
         for key, value in self.values.items():
             if key in self.saved_values_mod.keys():
                 self.saved_values_mod[key] = value
 
     def verify_values(self):
+        """
+        Verify and track modified values.
+
+        This method checks if any values in the data dictionaries (dataEnums and dataRange) have been modified and
+        updates the modifiedValues list accordingly. It also creates rectangles for visualizing modified values.
+
+        """
         self.modifiedValues = []
         self.rectangleModiffiedList = []
         for key, value in self.dataEnums.items():
@@ -209,6 +274,13 @@ class Table(Object):
         self.create_modified_rectangles()
 
     def draw(self):
+        """
+        Draw the interface elements on the window.
+
+        This method visually renders checkboxes, modified values, enums, sliders, values from Pi, columns,
+        and dropdown menus (if shown).
+
+        """
         if self.minScroll != self.last_minScroll:
             self.last_minScroll = self.minScroll
             self.redo_sliders()
@@ -238,7 +310,6 @@ class Table(Object):
             self.stopEnums = self.maxScroll
         else:
             self.stopEnums = len(self.dataEnums)
-            print(self.startRange, self.stopRange)
         if len(self.dataEnums) < self.maxScroll:
             self.startRange = (
                 self.minScroll
@@ -307,7 +378,6 @@ class Table(Object):
         # sliders
         for index, slider in enumerate(self.sliders):
             if index < self.stopRange and self.startRange >= 0:
-                print("aci")
                 slider.draw()
                 text_surface = self.font.render(
                     "Val: " + str(slider.defValue), True, WHITE
@@ -390,6 +460,14 @@ class Table(Object):
             self.game.draw.rect(self.window, WHITE, borderRectangle, 1)
 
     def create_rectangles(self):
+        """
+        Create and initialize rectangles for checkboxes and dropdown menus.
+
+        This method initializes two lists:
+        - `self.rectangleCheckboxList`: Stores rectangles for checkboxes.
+        - `self.rectangleValueList`: Stores rectangles for dropdown menus (associated with enum elements).
+
+        """
         self.rectangleCheckboxList = []
         self.rectangleValueLIst = []
         for index, e in enumerate(self.dataEnums.keys()):
@@ -424,6 +502,13 @@ class Table(Object):
             self.rectangleCheckboxList.append(rectangleCheckboxe)
 
     def create_modified_rectangles(self):
+        """
+        Create and initialize rectangles to highlight modified values.
+
+        This method creates rectangles around elements that have been modified
+        to visually indicate changes in the interface.
+
+        """
         for e in self.modifiedValues:
             rectangleModfieid = self.game.Rect(
                 self.column_width[0] + self.column_width[1] - 30 + self.x,
@@ -434,6 +519,13 @@ class Table(Object):
             self.rectangleModiffiedList.append(rectangleModfieid)
 
     def update_json(self):
+        """
+        Update and save the JSON data representing the interface state.
+
+        This method combines data from different sources, updates the JSON file,
+        and then resets the JSON data to its original state.
+
+        """
         self.modifiedValues = []
         self.rectangleModiffiedList = []
         self.data.update(self.dataEnums)
@@ -447,16 +539,46 @@ class Table(Object):
         self.reset_json()
 
     def get_dict_key(self, number, dictionary):
+        """
+        Get the key from a dictionary based on its position (index) in the dictionary.
+
+        Args:
+            number (int): The index of the key to retrieve.
+            dictionary (dict): The dictionary to extract the key from.
+
+        Returns:
+            str: The key corresponding to the specified index in the dictionary.
+
+        """
         for index, key in enumerate(dictionary.keys()):
             if index == number:
                 return key
 
     def get_dict_number(self, key, dictionary):
+        """
+        Get the index (position) of a key within a dictionary.
+
+        Args:
+            key (str): The key to find the index of.
+            dictionary (dict): The dictionary to search for the key.
+
+        Returns:
+            int: The index of the key within the dictionary.
+
+        """
         for index, keyDict in enumerate(dictionary.keys()):
             if keyDict == key:
                 return index
 
     def reset_json(self):
+        """
+        Reset attributes and load data from a JSON file.
+
+        Resets various attributes to their initial values, loads data from a JSON file,
+        categorizes the data into dictionaries based on their "type" key, and prepares
+        rectangles for display.
+
+        """
         self.minScroll = 0
         self.maxScroll = 9
         self.startEnums = 0
