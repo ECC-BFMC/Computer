@@ -44,7 +44,6 @@ piperecvFromHandler, pipesendFromHandler = Pipe(duplex=False)
 # Load data from a JSON file
 with open("setup/PairingData.json", "r") as file:
     data = json.load(file)
-print(data)
 
 # Extract values from the loaded data
 Ip = data["ip"]

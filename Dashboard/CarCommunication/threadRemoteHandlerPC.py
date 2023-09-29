@@ -53,13 +53,10 @@ class threadRemoteHandlerPC(ThreadWithStop):
         self.task = PeriodicTask(
             self.factory, 0.1, pipeRecv
         )  # Replace X with the desired number of seconds
-        print("before task")
 
     def run(self):
         self.task.start()
-        print("before run")
         self.reactor.run(installSignalHandlers=False)
-        print("after run")
 
     def stop(self):
         super(threadRemoteHandlerPC, self).stop()
@@ -142,7 +139,6 @@ class SingleConnection(protocol.Protocol):
                 data = self.buffer[: self.size]
                 dat = data.decode("utf-8")
                 self.buffer = self.buffer[self.size :]
-                print(dat)  # to be implemented
                 self.state = "SIZE&TYPE"
 
     def connectionLost(self, reason):
