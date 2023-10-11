@@ -289,16 +289,10 @@ class Table(Object):
         )
         self.update()
         self.scrollSlider.draw()
-        self.minScroll = (
-            +6
-            + len(self.dataRange)
-            + len(self.valuesFromPi)
-            - self.scrollSlider.current_value
-        )
+        self.minScroll = +6 + len(self.dataRange) - self.scrollSlider.current_value
         self.maxScroll = (
             len(self.dataEnums)
             + len(self.dataRange)
-            + len(self.valuesFromPi)
             - self.scrollSlider.current_value
             + (self.scrollSlider.pin_range_end - self.scrollSlider.pin_range_start)
         )
@@ -411,16 +405,20 @@ class Table(Object):
         #############################################################
         # vals from pi
         for index, e in enumerate(self.valuesFromPi.keys()):
-            if self.stopFromPI > 0 and index >= self.startFromPI:
+            if self.stopFromPI >= 0 and index >= self.startFromPI:
                 text_surface = self.font.render(e, True, WHITE)
                 text_x = self.x + 10
-                text_y = self.y + 30 * (index + self.stopRange + 2) + 10
+                text_y = (
+                    self.y + 30 * (index + self.stopRange + len(self.dataEnums)) + 10
+                )
                 self.window.blit(text_surface, (text_x, text_y))
         for index, e in enumerate(self.valuesFromPi.values()):
-            if self.stopFromPI > 0 and index >= self.startFromPI:
+            if self.stopFromPI >= 0 and index >= self.startFromPI:
                 text_surface = self.font.render(e, True, WHITE)
                 text_x = self.x + 10 + self.column_width[0]
-                text_y = self.y + 30 * (index + self.stopRange + 2) + 10
+                text_y = (
+                    self.y + 30 * (index + self.stopRange + len(self.dataEnums)) + 10
+                )
                 self.window.blit(text_surface, (text_x, text_y))
         #############################################################
         # cols
@@ -596,5 +594,6 @@ class Table(Object):
         self.modifiedValues = []
         self.rectangleModiffiedList = []
         self.redo_sliders()
-        self.valuesFromPi = {}
+        self.valuesFromPi = {+ len(self.dataEnums)
+                        + len(self.dataRange)}
         self.create_rectangles()
