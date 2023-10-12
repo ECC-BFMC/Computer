@@ -37,6 +37,7 @@ class dataDealer:
     def __init__(self):
         self.lock = threading.Lock()
         self.alldata = {}
+        self.connected = []
         self.fileHandler = FileHandler("historyFile.txt")
         data_points = deque(
             maxlen=30
@@ -69,9 +70,16 @@ class dataDealer:
             index = self.teams[clientIp]
         else:
             index = clientIp
+        self.connected.append(index)
         if not index in self.alldata:
             with self.lock:
                 self.alldata[index] = tmp
+    
+    def removeCar(self, clientIp):
+        if clientIp in self.connected:
+            self.connected.remove(clientIp)
+        else:
+            self.connected.remove(self.teams[clientIp])
 
     def modifyData(self, client, toput):
         # Receives like: {"type": data/devicePos/deviceRot/deviceSpeed, "data":any}
@@ -88,9 +96,9 @@ class dataDealer:
                 )
             elif toput["type"] == "devicePos":
                 x_y = (toput["value1"], toput["value2"])
-                self.alldata[index][toput["type"]] = x_y
+                self.alldata[index]["devicePos"] = x_y
             elif toput["type"] == "deviceRot" or toput["type"] == "deviceSpeed":
-                self.alldata[index][toput["type"]] = toput["value1"]
+                self.alldata[index]["deviceRot"] = toput["value1"]
 
     def getDeviceIP(self, id):
         return self.devices[id]
@@ -104,6 +112,9 @@ class dataDealer:
         with self.lock:
             tmp = deepcopy(self.alldata[client])
         return tmp
+
+    def getConnectedNow(self):
+        return self.connected
 
     def close(self):
         self.fileHandler.close()

@@ -91,6 +91,11 @@ class udpStream(protocol.DatagramProtocol):
         self.streaming_task.start(self.frequency)
 
     def send_message(self):
+        print ("\033c")
+        print("Status: ON")
+        print("-------------------------------------------")
+        print("No of Semaphores: ", len(self.semaphore_state))
+        
         nowtime = time.time()
         for x in range(len(self.semaphore_state)):
             timepassed = nowtime - self.semaphore_time[x]
@@ -108,13 +113,18 @@ class udpStream(protocol.DatagramProtocol):
                 self.semaphore_pos[x][0],
                 self.semaphore_pos[x][1],
             )
-
+            print("Semaphore with id ", x, ", the state is: ", len(self.semaphore_state[x]), ", x=", self.semaphore_pos[x][0], ", y=", self.semaphore_pos[x][1])
+        print("-------------------------------------------")
+        print("No of Cars: ", len(self.cars_pos))
         for x in range(len(self.cars_pos)):
             tmp = self.cars_pos[x] + 1
             if tmp >= len(self.path):
                 tmp = 0
             self.cars_pos[x] = tmp
             self.sendPos(x, self.path[tmp][0], self.path[tmp][1])
+            print("Car with id ", x, ", x=", self.path[tmp][0], ", y=", self.path[tmp][1])
+        
+        print("To quit, press Ctrl+C")
 
     def stoptask(self):
         self.streaming_task.stop()  # Stop streaming when the server is stopped
