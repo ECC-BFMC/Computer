@@ -44,5 +44,14 @@ class periodicTask(task.LoopingCall):
 
     def periodicCheck(self):
         allClients = self.data_dealer.getConnections()
+        connectedClients = self.data_dealer.getConnectedNow()
+        print ("\033c")
+        print("Server: ON")
+        print("The connected clients are:", connectedClients)
+        print("THE ALLTIMEDATA (since startup) IS: ")
+        print("-------------------------------------------")
         for client in allClients:
             data = self.data_dealer.getConnectionData(client)
+            print("+ + + ", client, " data is: ", data)
+        print("-------------------------------------------")
+        print("To quit, press Ctrl+C")
