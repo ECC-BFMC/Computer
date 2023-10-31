@@ -51,7 +51,7 @@ class threadRemoteHandlerPC(ThreadWithStop):
         self.pipeSend = pipeSend
         self.factory = FactoryDealer(self.pipeSend)
         self.reactor = reactor
-        self.reactor.connectTCP("192.168.175.78", 5000, self.factory)
+        self.reactor.connectTCP("192.168.88.75", 5001, self.factory)
         self.task = PeriodicTask(
             self.factory, 0.001, pipeRecv
         )  # Replace X with the desired number of seconds

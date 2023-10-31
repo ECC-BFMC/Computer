@@ -52,7 +52,7 @@ class dataDealer:
         self.devices = {
             1: "192.168.1.31:4691",
             2: "192.168.1.32:4691",
-            3: "192.168.88.96:4691",
+            3: "192.168.88.11:4691",
             4: "192.168.1.34:4691",
         }
 
@@ -61,7 +61,7 @@ class dataDealer:
             "192.168.1.62": "Lopa",
             "192.168.1.63": "Mopa",
             "192.168.1.64": "Huuuha",
-            "192.168.88.126": "TesT",
+            "192.168.889.75": "TesT",
         }
 
     def addNewconnectedCar(self, clientIp):
@@ -74,7 +74,7 @@ class dataDealer:
         if not index in self.alldata:
             with self.lock:
                 self.alldata[index] = tmp
-    
+
     def removeCar(self, clientIp):
         if clientIp in self.connected:
             self.connected.remove(clientIp)

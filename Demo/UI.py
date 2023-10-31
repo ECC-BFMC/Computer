@@ -60,7 +60,7 @@ class UI:
 
     def create(self):
         """This will initialize the tkinter frame"""
-        self.root.geometry("560x750")
+        self.root.geometry("560x840")
         self.root.resizable(0, 0)
         Background = tk.Frame(self.root, background="white")
         Background.pack(fill="both", expand=True)
@@ -87,8 +87,8 @@ class UI:
         PlusSpeed.place(x=5, y=265, width=30, height=20, in_=self.root)
         self.Speedslider = tk.Scale(
             self.root,
-            from_=5.0,
-            to=-5.0,
+            from_=50.0,
+            to=-50.0,
             command=self.slidingSpeed,
             sliderlength=10,
             resolution=0.1,
@@ -118,6 +118,23 @@ class UI:
         PlusSteer = tk.Button(self.root, text="+", command=self.plusSteer)
         PlusSteer.place(x=535, y=255, width=20, height=30, in_=self.root)
 
+        # --------------------------------------------------------------------
+        # -----------------------------Control Frame---------------------------
+        # --------------------------------------------------------------------
+        self.labelSpeed = tk.Label(self.root, text="Speed:")
+        self.labelSpeed.place(x=5, y=750, width=140, height=20, in_=self.root)
+        self.text_box1 = tk.Text(self.root, width=40, height=20)
+        self.text_box1.place(x=150, y=750, widt=140, height=20, in_=self.root)
+        self.labelSteer = tk.Label(self.root, text="Steer:")
+        self.labelSteer.place(x=5, y=780, width=140, height=20, in_=self.root)
+        self.text_box2 = tk.Text(self.root, width=40, height=20)
+        self.text_box2.place(x=150, y=780, widt=140, height=20, in_=self.root)
+        self.labelTime = tk.Label(self.root, text="Time:")
+        self.labelTime.place(x=5, y=810, width=140, height=20, in_=self.root)
+        self.text_box3 = tk.Text(self.root, width=40, height=20)
+        self.text_box3.place(x=150, y=810, widt=140, height=20, in_=self.root)
+        button = tk.Button(self.root, text="Submit", command=self.SendCommand)
+        button.place(x=295, y=750, width=260, height=80, in_=self.root)
         # --------------------------------------------------------------------
         # -----------------------------Start engine Frame---------------------
         # --------------------------------------------------------------------
@@ -205,18 +222,29 @@ class UI:
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
 
+    def SendCommand(self):
+        # Retrieve the text from the text boxes and store them in a dictionary
+        text_dict = {
+            "Speed": self.text_box1.get("1.0", "end-1c"),
+            "Time": self.text_box3.get("1.0", "end-1c"),
+            "Steer": self.text_box2.get("1.0", "end-1c"),
+        }
+        data = {"action": "STS", "value": text_dict}
+        self.pipesend.send(data)
+        print(data)
+
     def plusSpeed(self):
         """This function will increase the speed by 1"""
         speed = self.Speedslider.get() + 0.1
-        if speed > 5:
-            speed = 5
+        if speed > 50:
+            speed = 50
         self.setSpeed(speed)
 
     def minusSpeed(self):
         """This function will reduce the speed by 1"""
         speed = self.Speedslider.get() - 0.1
-        if speed < -5:
-            speed - 5
+        if speed < -50:
+            speed = -50
         self.setSpeed(speed)
 
     def slidingSpeed(self, val):
@@ -289,19 +317,15 @@ class UI:
         """This function will enable the start engine button."""
         if value == False:
             self.startEngineButton.config(state="disabled")
-            self.startEngineButton.config(background="red")
         else:
             self.startEngineButton.config(state="active")
-            self.startEngineButton.config(background="green")
 
     def enableStartRecord(self, value):
         """This function will enable the record button."""
         if value == False:
             self.startRecordingButton.config(state="disabled")
-            self.startRecordingButton.config(background="red")
         else:
             self.startRecordingButton.config(state="active")
-            self.startRecordingButton.config(background="green")
 
     def startEngine(self):
         """This function will swap the start engine button states."""
