@@ -53,7 +53,7 @@ except:
 
 
 class TrafficCommunication(ThreadWithStop):
-    def __init__(self, streamPort=9001, commPort=5000, encrypt_key=filename):
+    def __init__(self, streamPort=9000, commPort=5000, encrypt_key=filename):
         super(TrafficCommunication, self).__init__()
 
         self.data_dealer = dataDealer()
