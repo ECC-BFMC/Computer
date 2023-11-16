@@ -26,42 +26,23 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-
-import sys
-import os
-
-sys.path.append(
-    os.path.dirname(os.path.realpath(__file__)).split("trafficCommunicationServer")[0]
-)
-
 from twisted.internet import reactor
-from templates.threadwithstop import ThreadWithStop
 
 from udpStream import udpStream
 from tcpServer import tcpServer
 from locsys_SIM import tcpServerLocsys
 from Useful.dataDealer import dataDealer
+from Useful.periodicTask_test import periodicTask
 
-try:
-    from Useful.periodicTask import periodicTask
-
-    filename = "./Useful/privatekey_server.pem"
-except:
-    from Useful.periodicTask_test import periodicTask
-
-    filename = "./Useful/privatekey_server_test.pem"
-
-
-class TrafficCommunication(ThreadWithStop):
-    def __init__(self, streamPort=9000, commPort=5000, encrypt_key=filename):
-        super(TrafficCommunication, self).__init__()
+class TrafficCommunication():
+    def __init__(self, encrypt_key, streamPort=9000, commPort=5000):
 
         self.data_dealer = dataDealer()
 
         self.tcp_factory_Locsys = tcpServerLocsys()
         self.tcp_factory = tcpServer(self.data_dealer)
         self.udp_factory = udpStream(streamPort, commPort, encrypt_key)
-        self.period_task = periodicTask(1, self.data_dealer)
+        self.period_task = periodicTask(0.1, self.data_dealer)
 
         self.reactor = reactor
 
@@ -71,16 +52,17 @@ class TrafficCommunication(ThreadWithStop):
 
     def run(self):
         self.period_task.start()
-        self.reactor.run(installSignalHandlers=False)
+        # self.reactor.run(installSignalHandlers=False)
 
     def stop(self):
+        self.period_task.stop()
         self.reactor.stop()
-        super(TrafficCommunication, self).stop()
 
 
 if __name__ == "__main__":
-    traffic_communication = TrafficCommunication()
-    traffic_communication.start()
+    filename = "src/servers/trafficCommunicationServer/Useful/privatekey_server_test.pem"
+    traffic_communication = TrafficCommunication(filename)
+    traffic_communication.run()
     from multiprocessing import Event
 
     blocker = Event()
@@ -90,4 +72,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
         traffic_communication.stop()
-        traffic_communication.join()
+

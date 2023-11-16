@@ -38,10 +38,6 @@ class periodicTask(task.LoopingCall):
     def start(self):
         super().start(self.interval)
 
-    def stop(self):
-        if self.running:
-            super().stop()
-
     def periodicCheck(self):
         allClients = self.data_dealer.getConnections()
         connectedClients = self.data_dealer.getConnectedNow()
