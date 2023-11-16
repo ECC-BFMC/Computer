@@ -29,7 +29,6 @@
 from twisted.internet import protocol, task
 import json
 import itertools
-import time
 
 
 # The server itself. Creates a new Protocol for each new connection and has the info for all of them.
