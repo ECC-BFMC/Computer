@@ -594,6 +594,5 @@ class Table(Object):
         self.modifiedValues = []
         self.rectangleModiffiedList = []
         self.redo_sliders()
-        self.valuesFromPi = {+ len(self.dataEnums)
-                        + len(self.dataRange)}
+        self.valuesFromPi = {}
         self.create_rectangles()
