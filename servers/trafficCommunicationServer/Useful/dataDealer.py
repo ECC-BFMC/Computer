@@ -62,7 +62,7 @@ class dataDealer:
             "192.168.1.62": "Lopa",
             "192.168.1.63": "Mopa",
             "192.168.1.64": "Huuuha",
-            "192.168.889.75": "TesT",
+            "192.168.889.75": "TesT"
         }
 
     def addNewconnectedCar(self, clientIp):
