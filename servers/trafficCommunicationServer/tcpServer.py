@@ -65,6 +65,7 @@ class tcpServer(protocol.Factory):
                         or msg["type"] == "deviceSpeed"
                         or msg["type"] == "historyData"
                     ):
+                        
                         self.data_dealer.modifyData(client, msg)
                     else:
                         msg["error"] = "request not recognised."
