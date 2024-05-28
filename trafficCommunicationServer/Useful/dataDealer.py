@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
-from Useful.fileHandler import FileHandler
+from src.servers.trafficCommunicationServer.Useful.fileHandler import FileHandler
 
 import threading
 from collections import deque
@@ -51,7 +51,7 @@ class dataDealer:
         }
 
         self.devices = {
-            1: "192.168.1.31:4691",
+            1: "192.168.50.11:4691",
             2: "192.168.1.32:4691",
             3: "192.168.88.11:4691",
             4: "192.168.1.34:4691",
