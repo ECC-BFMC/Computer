@@ -1,4 +1,4 @@
-name: Propagate changes to data projects
+name: Propagate changes to server projects
 
 on: 
   push:
