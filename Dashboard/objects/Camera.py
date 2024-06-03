@@ -47,7 +47,7 @@ class Camera(Object):
 
     def __init__(self, x, y, game, window, width=220, height=120):
         super().__init__(x, y, game, window, width, height)
-        image1 = self.game.image.load("setup/images/BFMC.png")
+        image1 = self.game.image.load("setup/images/bfmc_new.png")
         self.frame = self.game.transform.scale(image1, (self.width, self.height))
         self.font = self.game.font.Font(None, 25)
         self.rectangle = self.game.Rect(x, y, self.width, self.height)
@@ -83,7 +83,7 @@ class Camera(Object):
         Set the frame to the BFMC logo image when the connection is lost.
 
         """
-        image1 = self.game.image.load("objects/images/BFMC.png")
+        image1 = self.game.image.load("objects/images/bfmc_new.png")
         self.frame = self.game.transform.scale(image1, (self.width, self.height))
 
     def update(self):
