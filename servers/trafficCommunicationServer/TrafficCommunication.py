@@ -60,7 +60,7 @@ class TrafficCommunication():
 
 
 if __name__ == "__main__":
-    filename = "src/servers/trafficCommunicationServer/Useful/privatekey_server_test.pem"
+    filename = "servers/trafficCommunicationServer/Useful/privatekey_server_test.pem"
     traffic_communication = TrafficCommunication(filename)
     traffic_communication.run()
     from multiprocessing import Event

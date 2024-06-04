@@ -27,8 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 from twisted.internet import task, protocol
-import src.servers.trafficCommunicationServer.Useful.keyDealer as keyDealer
-import socket
+import Useful.keyDealer as keyDealer
 
 
 class udpStream(protocol.DatagramProtocol):
@@ -43,8 +42,6 @@ class udpStream(protocol.DatagramProtocol):
         self.MsgToSend = tmpMsgToSend
 
     def startProtocol(self):
-        # if hasattr(socket, 'SO_REUSEPORT'):
-
         self.transport.setBroadcastAllowed(True)
         self.streaming_task = task.LoopingCall(self.send_message)
         self.streaming_task.start(self.frequency)  # Send data every 1 second
