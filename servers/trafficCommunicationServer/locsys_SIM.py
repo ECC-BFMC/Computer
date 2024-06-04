@@ -29,35 +29,27 @@
 from twisted.internet import protocol, task
 import json
 import itertools
+import re
 
+def extract_positions_from_log(log_file_path):
+    positions = []
+    pattern = re.compile(r"'x': '([-+]?\d*\.\d+|\d+)', 'y': '([-+]?\d*\.\d+|\d+)', 'quality': (\d+)")
+    
+    with open(log_file_path, 'r') as file:
+        for line in file:
+            match = pattern.search(line)
+            if match:
+                x = float(match.group(1))
+                y = float(match.group(2))
+                quality = int(match.group(3))
+                positions.append((x, y, quality))
+    return positions
 
-# The server itself. Creates a new Protocol for each new connection and has the info for all of them.
 class tcpServerLocsys(protocol.Factory):
     def __init__(self):
-        self.path = [
-            (0.83, 14.67),
-            (0.82, 14.29),
-            (1.38, 13.73),
-            (1.76, 13.74),
-            (2.12, 13.73),
-            (3.05, 12.08),
-            (3.05, 12.42),
-            (3.05, 12.04),
-            (3.05, 11.66),
-            (3.05, 11.41),
-            (2.1, 10.47),
-            (1.72, 10.47),
-            (1.38, 10.46),
-            (0.45, 11.39),
-            (0.46, 11.77),
-            (0.46, 12.15),
-            (0.45, 12.52),
-            (0.45, 12.8),
-            (0.45, 14.29),
-            (0.46, 14.67),
-        ]
-
-        self.frequency = 1
+        self.path = extract_positions_from_log("servers/trafficCommunicationServer/Useful/sample_data.log")
+        print(self.path)
+        self.frequency = 0.2
         self.connections = {}
 
     def buildProtocol(self, addr):
@@ -65,8 +57,6 @@ class tcpServerLocsys(protocol.Factory):
         conn.factory = self
         return conn
 
-
-# One class is generated for each new connection
 class SingleConnection(protocol.Protocol):
     def connectionMade(self):
         peer = self.transport.getPeer()
@@ -94,6 +84,6 @@ class SingleConnection(protocol.Protocol):
 
     def send_data(self):
         pos = next(self.array_iterator)
-        tosend = {"x": pos[0], "y": pos[1]}
+        tosend = {"x": pos[0], "y": pos[1], "quality": pos[2]}
         msgtosend = json.dumps(tosend)
         self.transport.write(msgtosend.encode())
