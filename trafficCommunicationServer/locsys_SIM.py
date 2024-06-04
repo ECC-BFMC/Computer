@@ -47,7 +47,7 @@ def extract_positions_from_log(log_file_path):
 
 class tcpServerLocsys(protocol.Factory):
     def __init__(self):
-        self.path = extract_positions_from_log("servers/trafficCommunicationServer/Useful/sample_data.log")
+        self.path = extract_positions_from_log("servers/trafficCommunicationServer/Useful/sample_data.txt")
         print(self.path)
         self.frequency = 0.2
         self.connections = {}
