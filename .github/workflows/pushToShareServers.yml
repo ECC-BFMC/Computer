@@ -53,7 +53,7 @@ jobs:
     - name: Add source to the commit.
       run: |
         git add servers
-        git commit --amend -m "Traceback: project_name=CompetitionPCing"
+        git commit --amend -m "Traceback: project_name=Computer"
 
     - name: Push merged changes to remote servers branch
       run: |
