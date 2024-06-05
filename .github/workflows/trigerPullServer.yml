@@ -35,7 +35,7 @@ jobs:
           project_origin="${{ needs.identify-and-print.outputs.project_origin }}"
 
           
-          repositories=(Computer )
+          repositories=(Computer Components CompetitionPCing)
 
           # Remove the project_origin from the repositories array
           for i in "${!repositories[@]}"; do
