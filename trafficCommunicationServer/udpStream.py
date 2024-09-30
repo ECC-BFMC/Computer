@@ -25,15 +25,18 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-
+# Import necessary modules
 from twisted.internet import task, protocol
-import Useful.keyDealer as keyDealer
+from Useful import keyDealer as keyDealer
 
-
+# Define the udpStream class
 class udpStream(protocol.DatagramProtocol):
     def __init__(self, streamPort, commPort, encrypt_key, frequency=1):
+        # Set the broadcast address and stream frequency
         self.address = ("<broadcast>", streamPort)
         self.frequency = frequency
+
+        # Load the private key and prepare the message to send
         key = keyDealer.load_private_key(encrypt_key)
         msg = "listening on:" + str(commPort)
         msg_t = msg.encode()
@@ -42,12 +45,15 @@ class udpStream(protocol.DatagramProtocol):
         self.MsgToSend = tmpMsgToSend
 
     def startProtocol(self):
+        # Allow broadcasting and start the streaming task
         self.transport.setBroadcastAllowed(True)
         self.streaming_task = task.LoopingCall(self.send_message)
         self.streaming_task.start(self.frequency)  # Send data every 1 second
 
     def send_message(self):
+        # Send the message to the broadcast address
         self.transport.write(self.MsgToSend, self.address)
 
     def connectionLost(self, reason):
-        self.streaming_task.stop()  # Stop streaming when the server is stopped
+        # Stop the streaming task when the server is stopped
+        self.streaming_task.stop()
