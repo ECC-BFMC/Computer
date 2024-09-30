@@ -25,19 +25,24 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-
 from threading import Lock
 
 
 class FileHandler:
     def __init__(self, f_fileName):
+        # Open the file in write mode
         self.outFile = open(f_fileName, "w")
+        # Create a lock to ensure thread safety
         self.lock = Lock()
 
     def write(self, f_str):
+        # Acquire the lock to prevent concurrent writes
         with self.lock:
+            # Write the string to the file
             self.outFile.write(f_str)
+            # Write a newline character after each write
             self.outFile.write("\n")
 
     def close(self):
+        # Close the file
         self.outFile.close()

@@ -25,51 +25,44 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-from twisted.internet import task
+import threading
+import copy
 
+class locationDealer:
+    def __init__(self):
+        # Initialize the devices dictionary
+        self.devices = {}
 
-class periodicTask(task.LoopingCall):
-    def __init__(self, interval, data_dealer, location_dealer):
-        super().__init__(self.periodicCheck)
-        self.interval = interval
-        self.data_dealer = data_dealer
-        self.location_dealer = location_dealer
+    def connectDev(self, IDloc):
+        # Add a new device to the devices dictionary
+        self.devices[IDloc] = {}
+        self.devices[IDloc]["lock"] = threading.Lock()
+        self.devices[IDloc]["pos"] = {"x":0.0, "y":0.0, "z":0.0, "quality":0}
+    
+    def disconnectDev(self, IDloc):
+        # Remove a device from the devices dictionary
+        del self.devices[IDloc]
 
-    def start(self):
-        super().start(self.interval)
+    def getLocation(self, IDloc):
+        # Get the location of a device
+        with self.devices[IDloc]["lock"]:
+            tmp = copy.deepcopy(self.devices[IDloc]["pos"])
+        return tmp
+    
+    def getLocations(self):
+        a = {}
+        for device in self.devices:
+            a[device] = {}
+            with self.devices[device]["lock"]:
+                a[device]["pos"] =  tmp = copy.deepcopy((self.devices[device]["pos"]))
+        return a
+    
 
-    def periodicCheck(self):
-        # Get all clients connected to the server
-        allClients = self.data_dealer.getConnections()
-        
-        # Get currently connected clients
-        connectedClients = self.data_dealer.getConnectedNow()
-
-        positions = self.location_dealer.getLocations()
-        
-        # Clear the console
-        print ("\033c")
-        
-        # Print server status
-        print("Server: ON")
-        
-        # Print the connected clients
-        print("The connected clients are:", connectedClients)
-        
-        # Print all-time data since startup
-        print("THE ALLTIMEDATA (since startup) IS: ")
-        print("-------------------------------------------")
-        
-        # Print data for each client
-        for client in allClients:
-            data = self.data_dealer.getConnectionData(client)
-            print("+ + + ", client, " data is: ", data)
-        
-        print("-------------------------------------------")
-
-        print("THE device/s location is:  \n")
-         # Print data for each device
-        for position in positions:
-            print(position, "+ + + ", positions[position], " + + +\n")
-
-        print("To quit, press Ctrl+C")
+    def isConnecedDev(self, IDloc):
+        # Check if a device is connected
+        return IDloc in self.devices
+    
+    def updateLocation(self, IDloc, x, y, quality, z = 2.3):
+        # Update the location of a device
+        with self.devices[IDloc]["lock"]:
+            self.devices[IDloc]["pos"] = {"x":x, "y":y, "z":z, "quality":quality}

@@ -37,6 +37,7 @@ from twisted.internet import task, protocol
 
 class udpStream(protocol.DatagramProtocol):
     def __init__(self, streamPort, frequency=0.1):
+        # Initialize the udpStream object
         self.address = ("<broadcast>", streamPort)
         self.frequency = frequency
 
@@ -49,6 +50,7 @@ class udpStream(protocol.DatagramProtocol):
         x_y = 1
         nowtime = time.time()
 
+        # Generate semaphores with random states and positions
         for x in range(semaphores):
             state, secs = random.choice(list(self.semaphore_pattern.items()))
             self.semaphore_state.append(state)
@@ -56,41 +58,14 @@ class udpStream(protocol.DatagramProtocol):
             self.semaphore_pos.append([x_y, x_y])
             x_y += 1
 
-        # cars generation
-        self.path = [
-            (0.83, 14.67),
-            (0.82, 14.29),
-            (1.38, 13.73),
-            (1.76, 13.74),
-            (2.12, 13.73),
-            (3.05, 12.08),
-            (3.05, 12.42),
-            (3.05, 12.04),
-            (3.05, 11.66),
-            (3.05, 11.41),
-            (2.1, 10.47),
-            (1.72, 10.47),
-            (1.38, 10.46),
-            (0.45, 11.39),
-            (0.46, 11.77),
-            (0.46, 12.15),
-            (0.45, 12.52),
-            (0.45, 12.8),
-            (0.45, 14.29),
-            (0.46, 14.67),
-        ]
-        cars = 1
-        self.cars_pos = []
-
-        for x in range(cars):
-            self.cars_pos.append(random.randint(0, len(self.path)))
-
     def startProtocol(self):
+        # Set the protocol to allow broadcasting
         self.transport.setBroadcastAllowed(True)
         self.streaming_task = task.LoopingCall(self.send_message)
         self.streaming_task.start(self.frequency)
 
     def send_message(self):
+        # Print the current status and number of semaphores
         print("\033c")
         print("Status: ON")
         print("-------------------------------------------")
@@ -100,6 +75,7 @@ class udpStream(protocol.DatagramProtocol):
         for x in range(len(self.semaphore_state)):
             timepassed = nowtime - self.semaphore_time[x]
             if timepassed > self.semaphore_pattern[self.semaphore_state[x]]:
+                # Update the semaphore state based on the pattern
                 self.semaphore_time[x] = nowtime
                 if self.semaphore_state[x] == "red":
                     self.semaphore_state[x] = "green"
@@ -113,6 +89,7 @@ class udpStream(protocol.DatagramProtocol):
                 self.semaphore_pos[x][0],
                 self.semaphore_pos[x][1],
             )
+            # Print the state and position of each semaphore
             print(
                 "Semaphore with id ",
                 x,
@@ -124,29 +101,21 @@ class udpStream(protocol.DatagramProtocol):
                 self.semaphore_pos[x][1],
             )
         print("-------------------------------------------")
-        print("No of Cars: ", len(self.cars_pos))
-        for x in range(len(self.cars_pos)):
-            tmp = self.cars_pos[x] + 1
-            if tmp >= len(self.path):
-                tmp = 0
-            self.cars_pos[x] = tmp
-            self.sendPos(x, self.path[tmp][0], self.path[tmp][1])
-            print(
-                "Car with id ", x, ", x=", self.path[tmp][0], ", y=", self.path[tmp][1]
-            )
-
         print("To quit, press Ctrl+C")
         time.sleep(1)
 
     def stoptask(self):
-        self.streaming_task.stop()  # Stop streaming when the server is stopped
+        # Stop the streaming task when the server is stopped
+        self.streaming_task.stop()
 
     def sendState(self, id, state, x, y):
+        # Send the state of a semaphore to the specified address
         value = {"device": "semaphore", "id": id, "state": state, "x": x, "y": y}
         message = json.dumps(value)
         self.transport.write(message.encode("utf-8"), self.address)
 
     def sendPos(self, id, x, y):
+        # Send the position of a car to the specified address
         value = {"device": "car", "id": id, "x": x, "y": y}
         message = json.dumps(value)
         self.transport.write(message.encode("utf-8"), self.address)
@@ -156,8 +125,11 @@ if __name__ == "__main__":
     streamport = 5007
     udp_factory = udpStream(streamport)
 
+    # Start listening for UDP packets on the specified port
     reactor.listenUDP(streamport, udp_factory)
 
+    # Start the Twisted reactor
     reactor.run()
 
+    # Stop the streaming task
     udp_factory.stoptask()
