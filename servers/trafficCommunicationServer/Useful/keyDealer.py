@@ -25,7 +25,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-
+# Import necessary modules
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -39,6 +39,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 
 
 def gen_key():
+    # Generate a new RSA private key
     private_key = rsa.generate_private_key(
         public_exponent=65537, key_size=2048, backend=default_backend()
     )
@@ -46,6 +47,7 @@ def gen_key():
 
 
 def save_private_key(pk, filename):
+    # Serialize the private key and save it to a file
     pem = pk.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -56,6 +58,7 @@ def save_private_key(pk, filename):
 
 
 def save_public_key(pk, filename):
+    # Serialize the public key and save it to a file
     pem = pk.public_bytes(
         encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.PKCS1
     )
@@ -64,6 +67,7 @@ def save_public_key(pk, filename):
 
 
 def load_private_key(filename):
+    # Load the private key from a file
     with open(filename, "rb") as pem_in:
         pemlines = pem_in.read()
     private_key = load_pem_private_key(pemlines, None, default_backend())
@@ -71,6 +75,7 @@ def load_private_key(filename):
 
 
 def load_public_key(filename):
+    # Load the public key from a file
     with open(filename, "rb") as pem_in:
         pemlines = pem_in.read()
     public_key = load_pem_public_key(pemlines, default_backend())
@@ -78,7 +83,7 @@ def load_public_key(filename):
 
 
 def sign_data(private_key, plain_text):
-    # SIGN DATA/STRING
+    # Sign the plain text using the private key
     signature = private_key.sign(
         data=plain_text,
         padding=padding.PSS(
@@ -91,6 +96,7 @@ def sign_data(private_key, plain_text):
 
 def verify_data(public_key, plain_text, signature):
     try:
+        # Verify the signature of the plain text using the public key
         public_key.verify(
             signature=signature,
             data=plain_text,

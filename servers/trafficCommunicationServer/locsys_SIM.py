@@ -25,12 +25,12 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-
-from twisted.internet import protocol, task
-import json
+# Import necessary modules
+from twisted.internet import task
 import itertools
 import re
 
+# Function to extract positions from log file
 def extract_positions_from_log(log_file_path):
     positions = []
     pattern = re.compile(r"'x': '([-+]?\d*\.\d+|\d+)', 'y': '([-+]?\d*\.\d+|\d+)', 'quality': (\d+)")
@@ -45,45 +45,35 @@ def extract_positions_from_log(log_file_path):
                 positions.append((x, y, quality))
     return positions
 
-class tcpServerLocsys(protocol.Factory):
-    def __init__(self):
-        self.path = extract_positions_from_log("servers/trafficCommunicationServer/Useful/sample_data.txt")
-        print(self.path)
+class LocsysGather():
+    def __init__(self, location_dealer):
+        # Set the path to the log file
+        self.path = extract_positions_from_log("Useful/sample_data.txt")
+        # Set the frequency of data update
         self.frequency = 0.2
+        # Initialize connections dictionary
         self.connections = {}
+        # Set the location dealer
+        self.location_dealer = location_dealer
+        # set the simulated device
+        self.device = 3
+        # Connect to the device
+        self.location_dealer.connectDev(self.device)
+        # Create an iterator to cycle through the positions array
+        self.array_iterator = itertools.cycle(self.path)
 
-    def buildProtocol(self, addr):
-        conn = SingleConnection()
-        conn.factory = self
-        return conn
+        # Start a looping call to update data at the specified frequency
+        self.streaming_task = task.LoopingCall(self.update_data)
+        self.streaming_task.start(self.frequency)
 
-class SingleConnection(protocol.Protocol):
-    def connectionMade(self):
-        peer = self.transport.getPeer()
-        self.connectiondata = peer.host + ":" + str(peer.port)
-        self.factory.connections[self.connectiondata] = self
-        print(
-            "Connection with :",
-            self.connectiondata,
-            " established for locsys device simulator",
-        )
-        self.array_iterator = itertools.cycle(self.factory.path)
-        self.streaming_task = task.LoopingCall(self.send_data)
-        self.streaming_task.start(self.factory.frequency)
-
-    def connectionLost(self, reason):
-        print(
-            "Connection lost with ",
-            self.connectiondata,
-            " due to: ",
-            reason,
-            "for locsys device simulator",
-        )
-        del self.factory.connections[self.connectiondata]
-        self.streaming_task.stop()
-
-    def send_data(self):
+    def update_data(self):
+        # Get the next position from the iterator
         pos = next(self.array_iterator)
-        tosend = {"x": pos[0], "y": pos[1], "quality": pos[2]}
-        msgtosend = json.dumps(tosend)
-        self.transport.write(msgtosend.encode())
+        # Update the location dealer with the new position
+        self.location_dealer.updateLocation(self.device, pos[0], pos[1], pos[2])
+
+    def stop(self):
+        # Disconnect from the device with ID 3
+        self.location_dealer.disconnectDev(self.device)
+        # Stop the streaming task
+        self.streaming_task.stop()
