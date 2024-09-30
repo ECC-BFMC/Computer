@@ -25,51 +25,65 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
-
+# Import necessary modules
 from twisted.internet import reactor
-
 from udpStream import udpStream
 from tcpServer import tcpServer
-from locsys_SIM import tcpServerLocsys
+from locsys_SIM import LocsysGather
 from Useful.dataDealer import dataDealer
 from Useful.periodicTask_test import periodicTask
+from Useful.locationDealer import locationDealer
 
 class TrafficCommunication():
     def __init__(self, encrypt_key, streamPort=9000, commPort=5000):
-
+        # Initialize data dealer and location dealer
         self.data_dealer = dataDealer()
+        self.location_dealer = locationDealer()
 
-        self.tcp_factory_Locsys = tcpServerLocsys()
-        self.tcp_factory = tcpServer(self.data_dealer)
+        # Initialize LocsysGather with location dealer
+        self.Locsys = LocsysGather(self.location_dealer)
+
+        # Initialize tcpServer with data dealer and location dealer
+        self.tcp_factory = tcpServer(self.data_dealer, self.location_dealer)
+
+        # Initialize udpStream with streamPort, commPort, and encrypt_key
         self.udp_factory = udpStream(streamPort, commPort, encrypt_key)
-        self.period_task = periodicTask(0.1, self.data_dealer)
 
+        # Initialize periodicTask with data dealer
+        self.period_task = periodicTask(0.1, self.data_dealer, self.location_dealer)
+
+        # Initialize reactor
         self.reactor = reactor
 
+        # Listen for TCP connections on commPort
         self.reactor.listenTCP(commPort, self.tcp_factory)
-        self.reactor.listenTCP(4691, self.tcp_factory_Locsys)
+
+        # Listen for UDP connections on streamPort
         self.reactor.listenUDP(streamPort, self.udp_factory)
 
     def run(self):
+        # Start periodic task
         self.period_task.start()
-        # self.reactor.run(installSignalHandlers=False)
+
+        # Run the reactor
+        self.reactor.run()
 
     def stop(self):
+        # Stop LocsysGather
+        self.Locsys.stop()
+
+        # Stop periodic task
         self.period_task.stop()
-        self.reactor.stop()
 
 
 if __name__ == "__main__":
-    filename = "servers/trafficCommunicationServer/Useful/privatekey_server_test.pem"
+    # Specify the filename for the private key
+    filename = "Useful/privatekey_server_test.pem"
+
+    # Create an instance of TrafficCommunication
     traffic_communication = TrafficCommunication(filename)
+
+    # Run the traffic communication
     traffic_communication.run()
-    from multiprocessing import Event
 
-    blocker = Event()
-
-    try:
-        blocker.wait()
-    except KeyboardInterrupt:
-        print("\nCatching a KeyboardInterruption exception! Shutdown all processes.\n")
-        traffic_communication.stop()
-
+    traffic_communication.stop()
