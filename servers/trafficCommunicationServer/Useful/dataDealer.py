@@ -47,13 +47,6 @@ class dataDealer:
             "historyData": data_points,
         }  # Sample data structure for a connected car
 
-        self.devices = {
-            1: "192.168.1.31:4691",
-            2: "192.168.1.32:4691",
-            3: "192.168.88.11:4691",
-            4: "192.168.1.34:4691",
-        }  # Dictionary to store device IP addresses
-
         self.teams = {
             "192.168.1.61": "Popa",
             "192.168.1.62": "Lopa",
@@ -127,10 +120,6 @@ class dataDealer:
             self.alldata[index]["historyData"].append(
                 [toput["value1"], toput["value2"], toput["value3"]]
             )  # Append the history data to the car's historyData list
-
-    def getDeviceIP(self, id):
-        # Get the device IP based on the ID
-        return self.devices[id]
 
     def getConnections(self):
         # Get the list of connected devices
