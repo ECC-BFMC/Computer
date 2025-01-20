@@ -94,6 +94,7 @@ class tcpServer(protocol.Factory):
                             msg["error"] = "Location ID not connected."
                             self.send_data_to_client(client, msg)
                             return
+                        self.data_dealer.addNewconnectedCar(client.split(":")[0] , msg["locID"])  # add new connected car to data dealer
                         self.connections[client].loopingStream = task.LoopingCall(self.send_location, msg["locID"], client)  # start sending location data at specified frequency
                         self.connections[client].loopingStream.start(freq)                               
                     elif msg["type"] == "locIDubsub":
@@ -113,7 +114,6 @@ class tcpServer(protocol.Factory):
         self.data_dealer.close()  # close the data dealer
 
     def buildProtocol(self, addr):
-        self.data_dealer.addNewconnectedCar(addr.host)  # add new connected car to data dealer
         conn = SingleConnection()
         conn.factory = self
         return conn

@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 # Import necessary modules
 from twisted.internet import task, protocol
-from Useful import keyDealer as keyDealer
+from .Useful import keyDealer as keyDealer
 
 # Define the udpStream class
 class udpStream(protocol.DatagramProtocol):
