@@ -55,7 +55,7 @@ class dataDealer:
             "192.168.889.75": "TesT"
         }  # Dictionary to store team names based on IP addresses
 
-    def addNewconnectedCar(self, clientIp):
+    def addNewconnectedCar(self, clientIp, id):
         # Add a new connected car to the data dealer
         tmp = deepcopy(self.carDataSample)  # Create a deep copy of the carDataSample
         if clientIp in self.teams:
