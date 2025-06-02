@@ -35,7 +35,7 @@ class udpStream(protocol.DatagramProtocol):
         # Set the broadcast address and stream frequency
         self.address = ("<broadcast>", streamPort)
         self.frequency = frequency
-
+        print("udpStream init")
         # Load the private key and prepare the message to send
         key = keyDealer.load_private_key(encrypt_key)
         msg = "listening on:" + str(commPort)
@@ -46,12 +46,14 @@ class udpStream(protocol.DatagramProtocol):
 
     def startProtocol(self):
         # Allow broadcasting and start the streaming task
+        print("udpStream start protocol")
         self.transport.setBroadcastAllowed(True)
         self.streaming_task = task.LoopingCall(self.send_message)
         self.streaming_task.start(self.frequency)  # Send data every 1 second
 
     def send_message(self):
         # Send the message to the broadcast address
+        print("udpStream send_message", self.address)
         self.transport.write(self.MsgToSend, self.address)
 
     def connectionLost(self, reason):

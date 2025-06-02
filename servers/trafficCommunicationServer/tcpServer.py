@@ -139,5 +139,6 @@ class SingleConnection(protocol.Protocol):
         del self.factory.connections[self.connectiondata]  # remove connection from server's connections dictionary
 
     def send_data(self, message):
+        print("tcpServer->SingleConnection->send_data")
         msg = json.dumps(message)
         self.transport.write(msg.encode())  # send data to client
