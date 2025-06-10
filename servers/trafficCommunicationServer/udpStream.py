@@ -53,7 +53,7 @@ class udpStream(protocol.DatagramProtocol):
 
     def send_message(self):
         # Send the message to the broadcast address
-        print("udpStream send_message", self.address)
+        # print("udpStream send_message", self.address)
         self.transport.write(self.MsgToSend, self.address)
 
     def connectionLost(self, reason):
