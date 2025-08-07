@@ -1,0 +1,4 @@
+[submodule "src/servers"]
+	path = src/servers
+	url = https://github.com/ECC-BFMC/Shared.git
+	branch = servers
